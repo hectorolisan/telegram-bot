@@ -76,6 +76,8 @@ telegram-bot/
 ├── requirements.txt     # Project dependencies
 ├── requirements-dev.txt # Development tools (ruff, pytest)
 ├── pyproject.toml       # Ruff and pytest configuration
+├── Dockerfile           # Container image
+├── compose.yaml         # Docker Compose service with persistent volume
 ├── .env.example
 ├── .gitignore
 ├── LICENSE
@@ -98,6 +100,43 @@ telegram-bot/
 
 ```bash
 python main.py
+```
+
+## Deployment
+
+### Docker (any VPS)
+
+```bash
+docker compose up -d --build
+```
+
+The `bot-data` volume keeps `data/bot.pickle` (user preferences) between restarts. Logs: `docker compose logs -f`.
+
+### Railway or Fly.io
+
+Both detect the `Dockerfile` automatically. Set `TELEGRAM_BOT_TOKEN` (and optionally `TMDB_API_KEY`, `TIMEZONE`) as environment variables and attach a volume mounted at `/app/data`.
+
+### VPS with systemd (without Docker)
+
+Create `/etc/systemd/system/telegram-bot.service`, adjusting `User` and paths:
+
+```ini
+[Unit]
+Description=Telegram bot
+After=network-online.target
+
+[Service]
+User=bot
+WorkingDirectory=/opt/telegram-bot
+ExecStart=/opt/telegram-bot/.venv/bin/python main.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl enable --now telegram-bot
 ```
 
 ## Development
