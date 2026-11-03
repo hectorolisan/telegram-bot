@@ -1,5 +1,6 @@
 import html
 import ipaddress
+import os
 import socket
 
 import httpx
@@ -7,11 +8,27 @@ import httpx
 from telegram import Update
 from typing import Any
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from decorators import UserError
 
 USER_AGENT = "telegram-bot/1.0 (https://github.com/hectorOliSan/telegram-bot)"
 TIMEOUT = 15
+DEFAULT_TIMEZONE = "Atlantic/Canary"
+
+
+def get_timezone(name: str | None = None) -> ZoneInfo:
+    """Devuelve la zona horaria indicada o la configurada por defecto."""
+    zone: str = name or os.getenv("TIMEZONE") or DEFAULT_TIMEZONE
+    try:
+        return ZoneInfo(zone)
+    except (ZoneInfoNotFoundError, ValueError):
+        raise UserError(f"Zona horaria no válida: <code>{html.escape(zone)}</code>")
+
+
+def truncate(text: str, limit: int) -> str:
+    """Recorta un texto plano a un máximo de caracteres."""
+    return text if len(text) <= limit else text[:limit - 1].rstrip() + "…"
 
 
 def get_args(update: Update) -> str:

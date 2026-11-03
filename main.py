@@ -25,7 +25,7 @@ from telegram.ext import (
     filters,
 )
 
-from commands import conversion, finance, maths, media, network, security, text, weather
+from commands import conversion, finance, fun, maths, media, network, security, text, weather
 from decorators import Handler, handle_errors, print_styled
 
 
@@ -143,6 +143,14 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
         Command(("ping",), network.ping, "/ping <dominio>", "Latencia y disponibilidad de un sitio web o IP"),
         Command(("whois",), network.whois_lookup, "/whois <dominio>", "Información de registro de un dominio"),
         Command(("headers",), network.headers, "/headers <url>", "Cabeceras HTTP que responde una página"),
+    ]),
+    ("🎮 Entretenimiento", [
+        Command(("pokemon",), fun.pokemon, "/pokemon", "Pokémon aleatorio con tipos, estadísticas y sprite"),
+        Command(("wiki",), fun.wiki, "/wiki", "Artículo aleatorio de Wikipedia con resumen y enlace"),
+        Command(("joke",), fun.joke, "/joke", "Chiste aleatorio"),
+        Command(("quote",), fun.quote, "/quote", "Cita célebre aleatoria con su autor"),
+        Command(("film",), fun.film, "/film", "Película o serie aleatoria con sinopsis, nota y cartel"),
+        Command(("ephemeris",), fun.ephemeris, "/ephemeris", "Hechos históricos de un día como hoy"),
     ]),
     ("⚙️ Sistema", [
         Command(("start",), start, "/start", "Bienvenida y resumen de funciones"),
