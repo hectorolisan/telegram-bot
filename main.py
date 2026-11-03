@@ -42,12 +42,11 @@ class Command:
 @handle_errors("Error al mostrar la bienvenida")
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Muestra la bienvenida y un resumen de funciones."""
-    name: str = html.escape(update.effective_user.first_name if update.effective_user else "")
     summary: str = "\n".join(
         f"{title} — {len(commands)} comando(s)" for title, commands in CATEGORIES
     )
     await update.effective_message.reply_text(
-        f"👋 ¡Hola, <b>{name}</b>! Soy un bot multiusos.\n\n{summary}\n\n"
+        f"👋 ¡Hola! Soy <b>@{context.bot.username}</b>, un bot multiusos.\n\n{summary}\n\n"
         "Pulsen el botón o usen /help para ver todos los comandos.",
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📖 Ayuda", callback_data="help:menu")]])
     )
