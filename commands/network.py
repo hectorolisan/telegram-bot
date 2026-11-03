@@ -26,6 +26,7 @@ SSL_TIMEOUT = 10
 DNS_URL = "https://dns.google/resolve"
 DNS_TYPES = {"A": 1, "AAAA": 28, "CNAME": 5, "MX": 15, "NS": 2, "TXT": 16}
 MAX_DNS_VALUE = 200
+MAX_DNS_RECORDS = 10
 
 
 async def tcp_latency(ip: str, port: int) -> float | None:
@@ -205,7 +206,7 @@ async def ssl_check(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         certificate: dict = await fetch_certificate(host, ip)
     except ssl.SSLCertVerificationError as e:
         raise UserError(
-            f"🔴 Certificado no válido para <b>{html.escape(host)}</b>: {html.escape(e.verify_message)}"
+            f"Certificado no válido para <b>{html.escape(host)}</b>: {html.escape(e.verify_message)}"
         ) from None
     except (OSError, TimeoutError):
         raise UserError(f"No se pudo conectar a <b>{html.escape(host)}</b> por el puerto 443") from None
@@ -246,7 +247,9 @@ async def dns(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     domain: str = extract_host(target)
     results: list[list[str]] = await asyncio.gather(*(dns_records(domain, kind) for kind in DNS_TYPES))
     sections: list[str] = [
-        f"<b>{kind}</b>\n" + "\n".join(f"• <code>{html.escape(value)}</code>" for value in values)
+        f"<b>{kind}</b>\n"
+        + "\n".join(f"• <code>{html.escape(value)}</code>" for value in values[:MAX_DNS_RECORDS])
+        + (f"\n• … y {len(values) - MAX_DNS_RECORDS} más" if len(values) > MAX_DNS_RECORDS else "")
         for kind, values in zip(DNS_TYPES, results, strict=True)
         if values
     ]
