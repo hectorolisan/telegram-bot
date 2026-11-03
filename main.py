@@ -25,7 +25,7 @@ from telegram.ext import (
     filters,
 )
 
-from commands import weather
+from commands import text, weather
 from decorators import Handler, handle_errors, print_styled
 
 
@@ -93,6 +93,14 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
     ("⛅ Tiempo y Clima", [
         Command(("weather", "tiempo"), weather.weather, "/weather [ciudad]",
                 "Tiempo actual de una ciudad o de su ubicación"),
+    ]),
+    ("📝 Utilidades de Texto", [
+        Command(("count_words", "count-words"), text.count_words, "/count_words <texto>",
+                "Cuenta las palabras de un texto"),
+        Command(("count_letter", "count-letter"), text.count_letters, "/count_letter <texto>",
+                "Cuenta los caracteres con y sin espacios"),
+        Command(("lorem", "loremipsum"), text.lorem, "/lorem <palabras>",
+                "Genera un texto Lorem Ipsum"),
     ]),
     ("⚙️ Sistema", [
         Command(("start",), start, "/start", "Bienvenida y resumen de funciones"),
