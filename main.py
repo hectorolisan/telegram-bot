@@ -124,6 +124,12 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
                 "Cuenta los caracteres con y sin espacios",
             ),
             Command(("lorem", "loremipsum"), text.lorem, "/lorem <palabras>", "Genera un texto Lorem Ipsum"),
+            Command(
+                ("translate", "traducir"),
+                text.translate,
+                "/translate <idioma> <texto>",
+                "Traduce un texto a otro idioma (en, es, fr, de...)",
+            ),
         ],
     ),
     (

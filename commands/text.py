@@ -1,11 +1,16 @@
+import html
 import random
+import re
 
 from telegram import Update
 from telegram.ext import ContextTypes
 
 from decorators import UserError, handle_errors
-from utils import get_args, usage
+from utils import fetch_json, get_args, usage
 
+TRANSLATE_URL = "https://api.mymemory.translated.net/get"
+TRANSLATE_MAX_BYTES = 500
+LANGUAGE_CODE = re.compile(r"[a-z]{2,3}(-[a-z]{2,4})?", re.IGNORECASE)
 LOREM_START = "Lorem ipsum dolor sit amet, consectetur adipiscing elit".split()
 LOREM_WORDS = (
     "a ac accumsan aenean aliquam aliquet amet ante arcu at auctor augue blandit commodo condimentum "
@@ -66,3 +71,23 @@ async def lorem(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not 1 <= word_count <= LOREM_MAX:
         raise UserError(f"El número de palabras debe estar entre 1 y {LOREM_MAX}")
     await update.effective_message.reply_text(generate_lorem(word_count))
+
+
+@handle_errors("Error al traducir el texto")
+async def translate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Traduce un texto al idioma indicado detectando el idioma de origen."""
+    parts: list[str] = get_args(update).split(maxsplit=1)
+    if len(parts) < 2 or not LANGUAGE_CODE.fullmatch(parts[0]):
+        raise usage("/translate <idioma> <texto>  (ej. /translate en hola mundo)")
+    target, text = parts
+    if len(text.encode()) > TRANSLATE_MAX_BYTES:
+        raise UserError(f"El texto no puede superar {TRANSLATE_MAX_BYTES} bytes")
+    data: dict = await fetch_json(TRANSLATE_URL, params={"q": text, "langpair": f"autodetect|{target}"})
+    if str(data.get("responseStatus")) != "200":
+        raise UserError(f"No se pudo traducir a <code>{html.escape(target)}</code>: usen un código como en, fr o zh-CN")
+    result: dict = data["responseData"]
+    source: str = result.get("detectedLanguage") or "?"
+    await update.effective_message.reply_text(
+        f"🌍 <b>{html.escape(source)} → {html.escape(target.lower())}</b>\n\n"
+        f"{html.escape(html.unescape(result['translatedText']))}"
+    )

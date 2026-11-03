@@ -1,7 +1,7 @@
 # Telegram Bot
 
 - Multipurpose Telegram bot built with `python-telegram-bot`
-- 41 commands grouped in 12 categories: weather, text, converters, security, maths, media, finance, networking, entertainment, games, productivity and preferences
+- 42 commands grouped in 12 categories: weather, text, converters, security, maths, media, finance, networking, entertainment, games, productivity and preferences
 - Interactive help menu with inline buttons
 - "🔄 Otra" button on random content (`/film`, `/series`, `/joke`, `/quote`, `/pokemon`, `/wiki`)
 - Per-user preferences (timezone, city, currency) saved in `data/bot.pickle` across restarts
@@ -67,7 +67,7 @@ telegram-bot/
 │   ├── productivity.py  # Timer and current time
 │   ├── security.py      # Passwords, hashes, Base64, IDs
 │   ├── settings.py      # User preferences (timezone, city, currency)
-│   ├── text.py          # Word/character counters, Lorem Ipsum
+│   ├── text.py          # Word/character counters, Lorem Ipsum, translator
 │   └── weather.py       # Current weather
 ├── main.py              # Bot entry point, command registry, start and help
 ├── decorators.py        # Styled printing and error-handling utilities
@@ -122,6 +122,7 @@ ruff format .
 | Text            | `/count_words <text>`                       | Word count (also `/count-words`)                               |
 | Text            | `/count_letter <text>`                      | Characters with and without spaces (also `/count-letter`)      |
 | Text            | `/lorem <words>`                            | Lorem Ipsum text (also `/loremipsum`)                          |
+| Text            | `/translate <language> <text>`              | Translation with source language detection (also `/traducir`)  |
 | Converters      | `/conversion <amount> <from> [to]`          | Currencies (`EUR a USD`), units (`km a mi`), time (`horas a min`); `to` defaults to `/setcurrency` |
 | Security        | `/password <length>`                        | Secure random password                                         |
 | Security        | `/hash <text>`                              | MD5, SHA-256 and SHA-512 hashes                                |
@@ -169,6 +170,7 @@ Telegram only allows lowercase letters, digits and underscores in command names,
 - [CoinGecko](https://www.coingecko.com/en/api): crypto prices
 - Yahoo Finance: market indices
 - [PokéAPI](https://pokeapi.co/), [Wikipedia](https://es.wikipedia.org/), [JokeAPI](https://jokeapi.dev/), [ZenQuotes](https://zenquotes.io/), [TMDB](https://www.themoviedb.org/) / [TVmaze](https://www.tvmaze.com/api), [Wikimedia Feed](https://api.wikimedia.org/)
+- [MyMemory](https://mymemory.translated.net/doc/spec.php): translations
 
 ## License
 
