@@ -57,7 +57,7 @@ POKEMON_STATS = {
 
 def again_button(command: str) -> InlineKeyboardMarkup:
     """Botón para repetir un comando aleatorio sin volver a escribirlo."""
-    return InlineKeyboardMarkup([[InlineKeyboardButton("🔄 Otra", callback_data=f"again:{command}")]])
+    return InlineKeyboardMarkup([[InlineKeyboardButton("🔄", callback_data=f"again:{command}")]])
 
 
 async def reply_with_photo(update: Update, photo: str | BytesIO | None, caption: str, command: str) -> None:
@@ -212,7 +212,7 @@ AGAIN_COMMANDS = {"pokemon": pokemon, "wiki": wiki, "joke": joke, "quote": quote
 
 
 async def again(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Repite el comando aleatorio del botón «Otra»."""
+    """Repite el comando aleatorio del botón 🔄."""
     await update.callback_query.answer()
     command = AGAIN_COMMANDS.get(update.callback_query.data.removeprefix("again:"))
     if command:
