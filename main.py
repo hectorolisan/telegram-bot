@@ -25,7 +25,7 @@ from telegram.ext import (
     filters,
 )
 
-from commands import conversion, finance, maths, media, security, text, weather
+from commands import conversion, finance, maths, media, network, security, text, weather
 from decorators import Handler, handle_errors, print_styled
 
 
@@ -138,6 +138,11 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
                 "Cambio actual y variación de una moneda (€, EUR, euro...)"),
         Command(("financial_market", "financial-market"), finance.financial_market, "/financial_market",
                 "Resumen de los principales índices y criptomonedas"),
+    ]),
+    ("🌐 Redes y Desarrollo", [
+        Command(("ping",), network.ping, "/ping <dominio>", "Latencia y disponibilidad de un sitio web o IP"),
+        Command(("whois",), network.whois_lookup, "/whois <dominio>", "Información de registro de un dominio"),
+        Command(("headers",), network.headers, "/headers <url>", "Cabeceras HTTP que responde una página"),
     ]),
     ("⚙️ Sistema", [
         Command(("start",), start, "/start", "Bienvenida y resumen de funciones"),
