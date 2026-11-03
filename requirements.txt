@@ -1,0 +1,9 @@
+httpx
+pillow
+pint
+python-dotenv
+python-telegram-bot[job-queue]
+python-whois
+qrcode
+rich
+tzdata
