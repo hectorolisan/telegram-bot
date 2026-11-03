@@ -130,11 +130,12 @@ def convert_unit(amount: float, source: str, target: str) -> str:
 @handle_errors("Error al realizar la conversión")
 async def conversion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Conversor universal de divisas y unidades."""
-    match = re.fullmatch(r"(\S+)\s+(\S+)\s+(?:(?:a|to|en|->)\s+)?(\S+)", get_args(update), re.IGNORECASE)
-    if not match:
+    match = re.fullmatch(r"(\S+)\s+(\S+)(?:\s+(?:(?:a|to|en|->)\s+)?(\S+))?", get_args(update), re.IGNORECASE)
+    target: str | None = (match and match[3]) or context.user_data.get("currency")
+    if not match or not target:
         raise usage("/conversion <cantidad> <origen> <destino>")
     amount: float = parse_number(match[1])
-    source, target = match[2], match[3]
+    source: str = match[2]
 
     source_currency, target_currency = normalize_currency(source), normalize_currency(target)
     supported: dict[str, str] = await get_currencies()

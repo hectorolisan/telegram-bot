@@ -75,7 +75,7 @@ async def timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 @handle_errors("Error al obtener la hora")
 async def now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Muestra la hora, fecha, zona horaria y día del año."""
-    current: datetime = datetime.now(get_timezone(get_args(update) or None))
+    current: datetime = datetime.now(get_timezone(get_args(update) or context.user_data.get("timezone")))
     offset: str = current.strftime("%z")
     await update.effective_message.reply_text(
         f"🕒 Hora: <b>{current:%H:%M:%S}</b>\n"

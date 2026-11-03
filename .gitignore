@@ -13,3 +13,6 @@ __pycache__/
 # Public directory
 !public/
 !public/**
+
+# Persistent bot data
+data/

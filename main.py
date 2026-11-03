@@ -5,6 +5,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 
 from dotenv import load_dotenv
 from telegram import (
@@ -22,10 +23,24 @@ from telegram.ext import (
     ContextTypes,
     Defaults,
     MessageHandler,
+    PicklePersistence,
     filters,
 )
 
-from commands import conversion, finance, fun, games, maths, media, network, productivity, security, text, weather
+from commands import (
+    conversion,
+    finance,
+    fun,
+    games,
+    maths,
+    media,
+    network,
+    productivity,
+    security,
+    settings,
+    text,
+    weather,
+)
 from decorators import Handler, handle_errors, print_styled
 
 
@@ -117,7 +132,7 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
             Command(
                 ("conversion", "convert"),
                 conversion.conversion,
-                "/conversion <cantidad> <origen> <destino>",
+                "/conversion <cantidad> <origen> [destino]",
                 "Convierte divisas (EUR a USD), medidas (km a mi) o tiempo (horas a min)",
             ),
         ],
@@ -180,7 +195,7 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
             Command(
                 ("currency", "moneda"),
                 finance.currency,
-                "/currency <simbolo>",
+                "/currency [simbolo]",
                 "Cambio actual y variación de una moneda (€, EUR, euro...)",
             ),
             Command(
@@ -237,6 +252,19 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
         ],
     ),
     (
+        "👤 Preferencias",
+        [
+            Command(("settz",), settings.settz, "/settz [zona]", "Zona horaria por defecto para /now y /ephemeris"),
+            Command(("setcity",), settings.setcity, "/setcity [ciudad]", "Ciudad por defecto para /weather"),
+            Command(
+                ("setcurrency",),
+                settings.setcurrency,
+                "/setcurrency [moneda]",
+                "Moneda por defecto para /currency y /conversion",
+            ),
+        ],
+    ),
+    (
         "⚙️ Sistema",
         [
             Command(("start",), start, "/start", "Bienvenida y resumen de funciones"),
@@ -245,6 +273,7 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
     ),
 ]
 
+DATA_FILE = Path("data/bot.pickle")
 VALID_COMMAND = re.compile(r"^[a-z0-9_]{1,32}$")
 
 
@@ -288,9 +317,11 @@ def main():
         Application.builder()
         .token(token)
         .defaults(Defaults(parse_mode=ParseMode.HTML, link_preview_options=LinkPreviewOptions(is_disabled=True)))
+        .persistence(PicklePersistence(filepath=DATA_FILE))
         .post_init(post_init)
         .build()
     )
+    DATA_FILE.parent.mkdir(exist_ok=True)
     register_commands(application=application)
     application.add_error_handler(log_error)
 

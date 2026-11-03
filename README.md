@@ -1,8 +1,9 @@
 # Telegram Bot
 
 - Multipurpose Telegram bot built with `python-telegram-bot`
-- 38 commands grouped in 11 categories: weather, text, converters, security, maths, media, finance, networking, entertainment, games and productivity
+- 41 commands grouped in 12 categories: weather, text, converters, security, maths, media, finance, networking, entertainment, games, productivity and preferences
 - Interactive help menu with inline buttons
+- Per-user preferences (timezone, city, currency) saved in `data/bot.pickle` across restarts
 - Error handling with styled terminal messages and friendly replies
 - Free public APIs only (no keys required except the optional TMDB key)
 - In-memory cache (2-5 min) for crypto, currency and market quotes to respect API rate limits
@@ -64,6 +65,7 @@ telegram-bot/
 │   ├── network.py       # Ping, WHOIS, HTTP headers
 │   ├── productivity.py  # Timer and current time
 │   ├── security.py      # Passwords, hashes, Base64, IDs
+│   ├── settings.py      # User preferences (timezone, city, currency)
 │   ├── text.py          # Word/character counters, Lorem Ipsum
 │   └── weather.py       # Current weather
 ├── main.py              # Bot entry point, command registry, start and help
@@ -115,11 +117,11 @@ ruff format .
 
 | Category        | Command                                     | Description                                                    |
 | --------------- | ------------------------------------------- | -------------------------------------------------------------- |
-| Weather         | `/weather [city]`                           | Current weather; without city asks for the user's location     |
+| Weather         | `/weather [city]`                           | Current weather; without city uses `/setcity` or asks for the location |
 | Text            | `/count_words <text>`                       | Word count (also `/count-words`)                               |
 | Text            | `/count_letter <text>`                      | Characters with and without spaces (also `/count-letter`)      |
 | Text            | `/lorem <words>`                            | Lorem Ipsum text (also `/loremipsum`)                          |
-| Converters      | `/conversion <amount> <from> <to>`          | Currencies (`EUR a USD`), units (`km a mi`), time (`horas a min`) |
+| Converters      | `/conversion <amount> <from> [to]`          | Currencies (`EUR a USD`), units (`km a mi`), time (`horas a min`); `to` defaults to `/setcurrency` |
 | Security        | `/password <length>`                        | Secure random password                                         |
 | Security        | `/hash <text>`                              | MD5, SHA-256 and SHA-512 hashes                                |
 | Security        | `/base64_encode <text>`                     | Base64 encoding                                                |
@@ -134,7 +136,7 @@ ruff format .
 | Media           | `/palette [3-5]`                            | Random palette with preview                                    |
 | Media           | `/avatar <seed>`                            | GitHub-style identicon from a seed                             |
 | Finance         | `/crypto <symbol>`                          | Price, 24h change, volume and market cap                       |
-| Finance         | `/currency <symbol>`                        | Exchange rates and daily change (also `/moneda`, accepts `€`, `$`, `euro`...) |
+| Finance         | `/currency [symbol]`                        | Exchange rates and daily change (also `/moneda`, accepts `€`, `$`, `euro`...) |
 | Finance         | `/financial_market`                         | IBEX 35, S&P 500, Nasdaq, Dow Jones and top cryptos (also `/financial-market`) |
 | Networking      | `/ping <domain>`                            | TCP latency and availability                                   |
 | Networking      | `/whois <domain>`                           | Domain registration data                                       |
@@ -151,6 +153,9 @@ ruff format .
 | Games           | `/die [sides]` or `/d<X>`                   | Dice roll, 6 sides by default                                  |
 | Productivity    | `/timer <seconds>`                          | Countdown with alert (accepts `5m`, `1h30m`)                   |
 | Productivity    | `/now [timezone]`                           | Time, date, timezone and day of the year                       |
+| Preferences     | `/settz [timezone]`                         | Default timezone for `/now` and `/ephemeris`                   |
+| Preferences     | `/setcity [city]`                           | Default city for `/weather`                                    |
+| Preferences     | `/setcurrency [currency]`                   | Default currency for `/currency` and `/conversion`             |
 | System          | `/start`                                    | Welcome message and feature summary                            |
 | System          | `/help`                                     | Interactive help menu by category                              |
 

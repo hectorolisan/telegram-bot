@@ -69,10 +69,29 @@ async def get_weather_text(latitude: float, longitude: float, place: str) -> str
     )
 
 
+async def geocode(city: str) -> dict:
+    """Busca una ciudad y devuelve sus coordenadas y nombre completo."""
+    data: dict = await fetch_json(GEOCODING_URL, params={"name": city, "count": 1, "language": "es"})
+    if not data.get("results"):
+        raise UserError(f"No se encontró la ciudad <b>{html.escape(city)}</b>")
+    result: dict = data["results"][0]
+    return {
+        "latitude": result["latitude"],
+        "longitude": result["longitude"],
+        "place": html.escape(", ".join(filter(None, [result["name"], result.get("admin1"), result.get("country")]))),
+    }
+
+
 @handle_errors("Error al consultar el tiempo")
 async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Muestra el tiempo de una ciudad o pide la ubicación."""
+    """Muestra el tiempo de una ciudad, la guardada con /setcity o pide la ubicación."""
     city: str = get_args(update)
+    saved: dict | None = context.user_data.get("city")
+    if not city and saved:
+        await update.effective_message.reply_text(
+            await get_weather_text(saved["latitude"], saved["longitude"], saved["place"])
+        )
+        return
     if not city:
         if update.effective_chat.type != ChatType.PRIVATE:
             raise UserError("Indiquen una ciudad: <code>/weather Madrid</code>")
@@ -86,12 +105,10 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
         return
 
-    data: dict = await fetch_json(GEOCODING_URL, params={"name": city, "count": 1, "language": "es"})
-    if not data.get("results"):
-        raise UserError(f"No se encontró la ciudad <b>{html.escape(city)}</b>")
-    result: dict = data["results"][0]
-    place: str = html.escape(", ".join(filter(None, [result["name"], result.get("admin1"), result.get("country")])))
-    await update.effective_message.reply_text(await get_weather_text(result["latitude"], result["longitude"], place))
+    result: dict = await geocode(city)
+    await update.effective_message.reply_text(
+        await get_weather_text(result["latitude"], result["longitude"], result["place"])
+    )
 
 
 @handle_errors("Error al consultar el tiempo")

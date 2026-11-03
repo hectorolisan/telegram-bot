@@ -188,7 +188,7 @@ async def series(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 @handle_errors("Error al obtener las efemérides")
 async def ephemeris(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Muestra hechos históricos destacados ocurridos un día como hoy."""
-    today: datetime = datetime.now(get_timezone())
+    today: datetime = datetime.now(get_timezone(context.user_data.get("timezone")))
     data: dict = await fetch_json(ONTHISDAY_URL.format(month=today.month, day=today.day))
     selected: list[dict] = data.get("selected", [])
     if not selected:

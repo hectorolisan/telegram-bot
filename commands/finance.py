@@ -77,7 +77,7 @@ async def crypto(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 @handle_errors("Error al consultar la moneda")
 async def currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Muestra el cambio actual y la variación diaria de una divisa."""
-    query: str = get_args(update)
+    query: str = get_args(update) or context.user_data.get("currency", "")
     if not query:
         raise usage("/currency <simbolo>")
     code: str = normalize_currency(query)
