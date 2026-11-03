@@ -3,6 +3,7 @@
 - Multipurpose Telegram bot built with `python-telegram-bot`
 - 41 commands grouped in 12 categories: weather, text, converters, security, maths, media, finance, networking, entertainment, games, productivity and preferences
 - Interactive help menu with inline buttons
+- "🔄 Otra" button on random content (`/film`, `/series`, `/joke`, `/quote`, `/pokemon`, `/wiki`)
 - Per-user preferences (timezone, city, currency) saved in `data/bot.pickle` across restarts
 - Error handling with styled terminal messages and friendly replies
 - Free public APIs only (no keys required except the optional TMDB key)

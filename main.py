@@ -291,6 +291,7 @@ def register_commands(application: Application) -> None:
     application.add_handler(MessageHandler(filters.Regex(r"^/d\d+(@\w+)?(\s|$)"), games.die))
     application.add_handler(MessageHandler(filters.LOCATION, weather.weather_location))
     application.add_handler(CallbackQueryHandler(help_callback, pattern=r"^help:"))
+    application.add_handler(CallbackQueryHandler(fun.again, pattern=r"^again:"))
 
 
 async def post_init(application: Application) -> None:

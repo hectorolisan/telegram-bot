@@ -6,7 +6,7 @@ from datetime import datetime
 from io import BytesIO
 
 from PIL import Image
-from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
 from decorators import UserError, handle_errors
@@ -55,12 +55,17 @@ POKEMON_STATS = {
 }
 
 
-async def reply_with_photo(update: Update, photo: str | BytesIO | None, caption: str) -> None:
+def again_button(command: str) -> InlineKeyboardMarkup:
+    """Botón para repetir un comando aleatorio sin volver a escribirlo."""
+    return InlineKeyboardMarkup([[InlineKeyboardButton("🔄 Otra", callback_data=f"again:{command}")]])
+
+
+async def reply_with_photo(update: Update, photo: str | BytesIO | None, caption: str, command: str) -> None:
     """Envía una foto con pie o, si no hay imagen, solo el texto."""
     if photo:
-        await update.effective_message.reply_photo(photo, caption=caption)
+        await update.effective_message.reply_photo(photo, caption=caption, reply_markup=again_button(command))
     else:
-        await update.effective_message.reply_text(caption)
+        await update.effective_message.reply_text(caption, reply_markup=again_button(command))
 
 
 def upscale_sprite(data: bytes) -> BytesIO:
@@ -90,7 +95,9 @@ async def pokemon(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"📏 {data['height'] / 10:g} m · ⚖️ {data['weight'] / 10:g} kg\n\n{stats}"
     )
     sprite_url: str | None = data["sprites"]["front_default"]
-    await reply_with_photo(update, upscale_sprite(await fetch_bytes(sprite_url)) if sprite_url else None, caption)
+    await reply_with_photo(
+        update, upscale_sprite(await fetch_bytes(sprite_url)) if sprite_url else None, caption, "pokemon"
+    )
 
 
 @handle_errors("Error al obtener el artículo de Wikipedia")
@@ -101,7 +108,7 @@ async def wiki(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     url: str = html.escape(data["content_urls"]["desktop"]["page"])
     extract: str = html.escape(truncate(data.get("extract", ""), 600))
     caption: str = f'📚 <b>{title}</b>\n\n{extract}\n\n🔗 <a href="{url}">Leer en Wikipedia</a>'
-    await reply_with_photo(update, data.get("thumbnail", {}).get("source"), caption)
+    await reply_with_photo(update, data.get("thumbnail", {}).get("source"), caption, "wiki")
 
 
 @handle_errors("Error al obtener el chiste")
@@ -115,7 +122,7 @@ async def joke(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if data["type"] == "single"
         else f"{html.escape(data['setup'])}\n\n<tg-spoiler>{html.escape(data['delivery'])}</tg-spoiler>"
     )
-    await update.effective_message.reply_text(f"😂 {text}")
+    await update.effective_message.reply_text(f"😂 {text}", reply_markup=again_button("joke"))
 
 
 @handle_errors("Error al obtener la cita")
@@ -123,7 +130,8 @@ async def quote(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Muestra una cita célebre aleatoria con su autor."""
     data: dict = (await fetch_json(QUOTE_URL))[0]
     await update.effective_message.reply_text(
-        f"💬 <i>«{html.escape(data['q'])}»</i>\n\n— <b>{html.escape(data['a'])}</b>"
+        f"💬 <i>«{html.escape(data['q'])}»</i>\n\n— <b>{html.escape(data['a'])}</b>",
+        reply_markup=again_button("quote"),
     )
 
 
@@ -175,14 +183,14 @@ async def film(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     api_key: str | None = os.getenv("TMDB_API_KEY")
     if not api_key:
         raise UserError("Falta configurar TMDB_API_KEY para recomendar películas")
-    await reply_with_photo(update, *await random_tmdb(api_key, "movie"))
+    await reply_with_photo(update, *await random_tmdb(api_key, "movie"), "film")
 
 
 @handle_errors("Error al recomendar una serie")
 async def series(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Recomienda una serie aleatoria con sinopsis, nota y cartel."""
     api_key: str | None = os.getenv("TMDB_API_KEY")
-    await reply_with_photo(update, *await (random_tmdb(api_key, "tv") if api_key else random_tvmaze()))
+    await reply_with_photo(update, *await (random_tmdb(api_key, "tv") if api_key else random_tvmaze()), "series")
 
 
 @handle_errors("Error al obtener las efemérides")
@@ -198,3 +206,14 @@ async def ephemeris(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.effective_message.reply_text(
         f"📅 <b>Efemérides del {today.day:02d}/{today.month:02d}</b>\n\n" + "\n\n".join(lines)
     )
+
+
+AGAIN_COMMANDS = {"pokemon": pokemon, "wiki": wiki, "joke": joke, "quote": quote, "film": film, "series": series}
+
+
+async def again(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Repite el comando aleatorio del botón «Otra»."""
+    await update.callback_query.answer()
+    command = AGAIN_COMMANDS.get(update.callback_query.data.removeprefix("again:"))
+    if command:
+        await command(update, context)
