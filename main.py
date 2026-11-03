@@ -25,6 +25,7 @@ from telegram.ext import (
     filters,
 )
 
+from commands import weather
 from decorators import Handler, handle_errors, print_styled
 
 
@@ -89,6 +90,10 @@ async def help_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 CATEGORIES: list[tuple[str, list[Command]]] = [
+    ("⛅ Tiempo y Clima", [
+        Command(("weather", "tiempo"), weather.weather, "/weather [ciudad]",
+                "Tiempo actual de una ciudad o de su ubicación"),
+    ]),
     ("⚙️ Sistema", [
         Command(("start",), start, "/start", "Bienvenida y resumen de funciones"),
         Command(("help",), help_command, "/help", "Menú interactivo de ayuda"),
@@ -111,6 +116,7 @@ def register_commands(application: Application) -> None:
                 application.add_handler(MessageHandler(
                     filters.Regex(rf"^/({pattern})(@\w+)?(\s|$)"), command.callback
                 ))
+    application.add_handler(MessageHandler(filters.LOCATION, weather.weather_location))
     application.add_handler(CallbackQueryHandler(help_callback, pattern=r"^help:"))
 
 
