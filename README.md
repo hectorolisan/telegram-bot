@@ -143,3 +143,11 @@ Telegram only allows lowercase letters, digits and underscores in command names,
 - [CoinGecko](https://www.coingecko.com/en/api): crypto prices
 - Yahoo Finance: market indices
 - [PokéAPI](https://pokeapi.co/), [Wikipedia](https://es.wikipedia.org/), [JokeAPI](https://jokeapi.dev/), [ZenQuotes](https://zenquotes.io/), [TMDB](https://www.themoviedb.org/) / [TVmaze](https://www.tvmaze.com/api), [Wikimedia Feed](https://api.wikimedia.org/)
+
+---
+
+Developed by Héctor Olivares Sánchez.
+
+<a href="https://www.themoviedb.org/"><img src="https://www.themoviedb.org/assets/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB logo" width="120"></a>
+
+This product uses the TMDB API but is not endorsed or certified by TMDB.
