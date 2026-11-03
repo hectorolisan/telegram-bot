@@ -150,7 +150,8 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
         Command(("wiki",), fun.wiki, "/wiki", "Artículo aleatorio de Wikipedia con resumen y enlace"),
         Command(("joke",), fun.joke, "/joke", "Chiste aleatorio"),
         Command(("quote",), fun.quote, "/quote", "Cita célebre aleatoria con su autor"),
-        Command(("film",), fun.film, "/film", "Película o serie aleatoria con sinopsis, nota y cartel"),
+        Command(("film",), fun.film, "/film", "Película aleatoria con sinopsis, nota y cartel"),
+        Command(("series",), fun.series, "/series", "Serie aleatoria con sinopsis, nota y cartel"),
         Command(("ephemeris",), fun.ephemeris, "/ephemeris", "Hechos históricos de un día como hoy"),
     ]),
     ("🎲 Azar y Juegos", [

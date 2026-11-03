@@ -107,9 +107,8 @@ async def quote(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
-async def random_tmdb(api_key: str) -> tuple[str | None, str]:
-    """Elige una película o serie popular aleatoria de TMDB."""
-    kind: str = random.choice(("movie", "tv"))
+async def random_tmdb(api_key: str, kind: str) -> tuple[str | None, str]:
+    """Elige una película ("movie") o serie ("tv") popular aleatoria de TMDB."""
     data: dict = await fetch_json(f"{TMDB_URL}/discover/{kind}", params={
         "api_key": api_key,
         "language": "es-ES",
@@ -148,12 +147,20 @@ async def random_tvmaze() -> tuple[str | None, str]:
     return (show.get("image") or {}).get("original"), caption
 
 
-@handle_errors("Error al recomendar una película o serie")
+@handle_errors("Error al recomendar una película")
 async def film(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Recomienda una película o serie aleatoria con sinopsis, nota y cartel."""
+    """Recomienda una película aleatoria con sinopsis, nota y cartel."""
     api_key: str | None = os.getenv("TMDB_API_KEY")
-    poster, caption = await (random_tmdb(api_key) if api_key else random_tvmaze())
-    await reply_with_photo(update, poster, caption)
+    if not api_key:
+        raise UserError("Falta configurar TMDB_API_KEY para recomendar películas")
+    await reply_with_photo(update, *await random_tmdb(api_key, "movie"))
+
+
+@handle_errors("Error al recomendar una serie")
+async def series(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Recomienda una serie aleatoria con sinopsis, nota y cartel."""
+    api_key: str | None = os.getenv("TMDB_API_KEY")
+    await reply_with_photo(update, *await (random_tmdb(api_key, "tv") if api_key else random_tvmaze()))
 
 
 @handle_errors("Error al obtener las efemérides")

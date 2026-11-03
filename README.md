@@ -1,7 +1,7 @@
 # Telegram Bot
 
 - Multipurpose Telegram bot built with `python-telegram-bot`
-- 37 commands grouped in 11 categories: weather, text, converters, security, maths, media, finance, networking, entertainment, games and productivity
+- 38 commands grouped in 11 categories: weather, text, converters, security, maths, media, finance, networking, entertainment, games and productivity
 - Interactive help menu with inline buttons
 - Error handling with styled terminal messages and friendly replies
 - Free public APIs only (no keys required except the optional TMDB key)
@@ -45,7 +45,7 @@ pip install -r requirements.txt
 
 ```bash
 TELEGRAM_BOT_TOKEN=123456:ABC...
-TMDB_API_KEY=              # Optional: movies and series from TMDB in /film
+TMDB_API_KEY=              # Optional: required by /film, TMDB series in /series (TVmaze without key)
 TIMEZONE=Atlantic/Canary   # Optional: default timezone for /now and /ephemeris
 ```
 
@@ -56,7 +56,7 @@ telegram-bot/
 ├── commands/
 │   ├── conversion.py    # Currency and unit converter
 │   ├── finance.py       # Crypto, currencies and market indices
-│   ├── fun.py           # Pokémon, Wikipedia, jokes, quotes, films, ephemeris
+│   ├── fun.py           # Pokémon, Wikipedia, jokes, quotes, films, series, ephemeris
 │   ├── games.py         # Coin, random number, dice
 │   ├── maths.py         # Calculator, primes, Fibonacci, percentages
 │   ├── media.py         # QR, colors, palettes, avatars
@@ -124,7 +124,8 @@ python main.py
 | Entertainment   | `/wiki`                                     | Random Spanish Wikipedia article                               |
 | Entertainment   | `/joke`                                     | Random joke in Spanish                                         |
 | Entertainment   | `/quote`                                    | Random famous quote                                            |
-| Entertainment   | `/film`                                     | Random movie or series with synopsis, rating and poster        |
+| Entertainment   | `/film`                                     | Random movie with synopsis, rating and poster (TMDB key)       |
+| Entertainment   | `/series`                                   | Random TV series with synopsis, rating and poster              |
 | Entertainment   | `/ephemeris`                                | Historical events on this day                                  |
 | Games           | `/coin`                                     | Heads or tails                                                 |
 | Games           | `/number [min] [max]`                       | Random number, 0-100 by default (also `/num`)                  |
