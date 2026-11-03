@@ -5,6 +5,7 @@
 - Interactive help menu with inline buttons
 - Error handling with styled terminal messages and friendly replies
 - Free public APIs only (no keys required except the optional TMDB key)
+- In-memory cache (2-5 min) for crypto, currency and market quotes to respect API rate limits
 
 <img src="public/cover.png" alt="Telegram Bot Cover" width="400">
 

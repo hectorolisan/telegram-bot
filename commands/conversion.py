@@ -9,6 +9,7 @@ from decorators import UserError, handle_errors
 from utils import fetch_json, format_number, get_args, parse_number, usage
 
 FRANKFURTER_URL = "https://api.frankfurter.dev/v1"
+CACHE_TTL = 300
 CURRENCY_ALIASES = {
     "€": "EUR",
     "euro": "EUR",
@@ -99,7 +100,9 @@ async def convert_currency(amount: float, source: str, target: str) -> str:
     """Convierte divisas con los tipos de cambio del BCE."""
     if source == target:
         return f"{format_number(amount)} {source} = {format_number(amount)} {target}"
-    data: dict = await fetch_json(f"{FRANKFURTER_URL}/latest", params={"base": source, "symbols": target})
+    data: dict = await fetch_json(
+        f"{FRANKFURTER_URL}/latest", params={"base": source, "symbols": target}, ttl=CACHE_TTL
+    )
     rate: float = data["rates"][target]
     return (
         f"💱 {format_number(amount)} {source} = <b>{format_number(amount * rate)} {target}</b>\n"

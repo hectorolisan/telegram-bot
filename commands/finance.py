@@ -14,6 +14,7 @@ YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
 YAHOO_HEADERS = {"User-Agent": "Mozilla/5.0"}
 CURRENCY_QUOTES = ("EUR", "USD", "GBP", "JPY", "CHF")
 MARKET_INDICES = {"^IBEX": "IBEX 35", "^GSPC": "S&amp;P 500", "^IXIC": "Nasdaq", "^DJI": "Dow Jones"}
+CACHE_TTL = 120
 MARKET_CRYPTOS = {"bitcoin": "BTC", "ethereum": "ETH", "binancecoin": "BNB", "solana": "SOL", "dogecoin": "DOGE"}
 
 
@@ -43,7 +44,7 @@ async def crypto(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query: str = get_args(update)
     if not query:
         raise usage("/crypto <simbolo>")
-    coins: list[dict] = (await fetch_json(f"{COINGECKO_URL}/search", params={"query": query}))["coins"]
+    coins: list[dict] = (await fetch_json(f"{COINGECKO_URL}/search", params={"query": query}, ttl=CACHE_TTL))["coins"]
     coin: dict | None = next(
         (c for c in coins if query.lower() in (c["symbol"].lower(), c["id"], c["name"].lower())),
         coins[0] if coins else None,
@@ -61,6 +62,7 @@ async def crypto(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 "include_24hr_vol": "true",
                 "include_market_cap": "true",
             },
+            ttl=CACHE_TTL,
         )
     )[coin["id"]]
     await update.effective_message.reply_text(
@@ -85,7 +87,9 @@ async def currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     quotes: list[str] = [quote for quote in CURRENCY_QUOTES if quote != code]
     start: str = (date.today() - timedelta(days=7)).isoformat()
-    data: dict = await fetch_json(f"{FRANKFURTER_URL}/{start}..", params={"base": code, "symbols": ",".join(quotes)})
+    data: dict = await fetch_json(
+        f"{FRANKFURTER_URL}/{start}..", params={"base": code, "symbols": ",".join(quotes)}, ttl=CACHE_TTL
+    )
     days: list[str] = sorted(data["rates"])
     latest, previous = data["rates"][days[-1]], data["rates"][days[-2]]
 
@@ -105,7 +109,10 @@ async def currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def fetch_index(symbol: str) -> tuple[float, float | None]:
     """Obtiene el precio y la variación diaria de un índice bursátil."""
     data: dict = await fetch_json(
-        YAHOO_CHART_URL.format(symbol=symbol), params={"range": "1d", "interval": "1d"}, headers=YAHOO_HEADERS
+        YAHOO_CHART_URL.format(symbol=symbol),
+        params={"range": "1d", "interval": "1d"},
+        headers=YAHOO_HEADERS,
+        ttl=CACHE_TTL,
     )
     meta: dict = data["chart"]["result"][0]["meta"]
     price: float = meta["regularMarketPrice"]
@@ -127,6 +134,7 @@ async def financial_market(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 "vs_currencies": "usd",
                 "include_24hr_change": "true",
             },
+            ttl=CACHE_TTL,
         ),
     )
     index_lines: list[str] = [

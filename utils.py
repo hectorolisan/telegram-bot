@@ -2,6 +2,7 @@ import html
 import ipaddress
 import os
 import socket
+import time
 from typing import Any
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -14,6 +15,8 @@ from decorators import UserError
 USER_AGENT = "telegram-bot/1.0 (https://github.com/hectorOliSan/telegram-bot)"
 TIMEOUT = 15
 DEFAULT_TIMEZONE = "Atlantic/Canary"
+
+cache: dict[str, tuple[float, Any]] = {}
 
 
 def get_timezone(name: str | None = None) -> ZoneInfo:
@@ -65,12 +68,21 @@ def http_client(**kwargs: Any) -> httpx.AsyncClient:
     )
 
 
-async def fetch_json(url: str, params: dict | None = None, headers: dict | None = None) -> Any:
-    """Hace una petición GET y devuelve el JSON."""
+async def fetch_json(url: str, params: dict | None = None, headers: dict | None = None, ttl: float = 0) -> Any:
+    """Hace una petición GET y devuelve el JSON, cacheado en memoria `ttl` segundos."""
+    key: str = f"{url}?{sorted((params or {}).items())}"
+    now: float = time.monotonic()
+    if ttl and key in cache and cache[key][0] > now:
+        return cache[key][1]
     async with http_client(headers=headers or {}) as client:
         response: httpx.Response = await client.get(url, params=params)
         response.raise_for_status()
-        return response.json()
+        data: Any = response.json()
+    if ttl:
+        for expired in [k for k, (expires, _) in cache.items() if expires <= now]:
+            del cache[expired]
+        cache[key] = (now + ttl, data)
+    return data
 
 
 async def fetch_bytes(url: str) -> bytes:
