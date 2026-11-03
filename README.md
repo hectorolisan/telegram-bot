@@ -6,6 +6,8 @@
 - Error handling with styled terminal messages and friendly replies
 - Free public APIs only (no keys required except the optional TMDB key)
 
+<img src="public/cover.png" alt="Telegram Bot Cover" width="400">
+
 ## Requirements
 
 - Python 3.10 or newer
