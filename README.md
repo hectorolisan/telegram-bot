@@ -2,6 +2,7 @@
 
 - Multipurpose Telegram bot built with `python-telegram-bot`
 - 45 commands grouped in 12 categories: weather, text, converters, security, maths, media, finance, networking, entertainment, games, productivity and preferences
+- Private by default: only the Telegram user in `USER_ID` can use it
 - Interactive help menu with inline buttons
 - "🔄 Otra" button on random content (`/film`, `/series`, `/joke`, `/quote`, `/pokemon`, `/wiki`)
 - Per-user preferences (timezone, city, currency) saved in `data/bot.pickle` across restarts
@@ -48,6 +49,7 @@ pip install -r requirements.txt
 
 ```bash
 TELEGRAM_BOT_TOKEN=123456:ABC...
+USER_ID=123456789         # Only this Telegram user can use the bot; others get "no access"
 TMDB_API_KEY=              # Optional: required by /film, TMDB series in /series (TVmaze without key)
 TIMEZONE=Atlantic/Canary   # Optional: default timezone for /now and /ephemeris
 ```
@@ -114,7 +116,7 @@ The `bot-data` volume keeps `data/bot.pickle` (user preferences) between restart
 
 ### Railway or Fly.io
 
-Both detect the `Dockerfile` automatically. Set `TELEGRAM_BOT_TOKEN` (and optionally `TMDB_API_KEY`, `TIMEZONE`) as environment variables and attach a volume mounted at `/app/data`.
+Both detect the `Dockerfile` automatically. Set `TELEGRAM_BOT_TOKEN` and `USER_ID` (and optionally `TMDB_API_KEY`, `TIMEZONE`) as environment variables and attach a volume mounted at `/app/data`.
 
 ### VPS with systemd (without Docker)
 

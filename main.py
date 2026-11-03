@@ -18,12 +18,14 @@ from telegram import (
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
+    ApplicationHandlerStop,
     CallbackQueryHandler,
     CommandHandler,
     ContextTypes,
     Defaults,
     MessageHandler,
     PicklePersistence,
+    TypeHandler,
     filters,
 )
 
@@ -284,10 +286,24 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
 
 DATA_FILE = Path("data/bot.pickle")
 VALID_COMMAND = re.compile(r"^[a-z0-9_]{1,32}$")
+NO_ACCESS = "⛔ No tienen acceso a este bot"
+
+
+async def restrict_access(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Solo deja pasar al usuario de USER_ID; al resto le avisa y corta el update."""
+    user = update.effective_user
+    if user and str(user.id) == os.getenv("USER_ID"):
+        return
+    if update.callback_query:
+        await update.callback_query.answer(NO_ACCESS, show_alert=True)
+    elif user and update.effective_message:
+        await update.effective_message.reply_text(NO_ACCESS)
+    raise ApplicationHandlerStop
 
 
 def register_commands(application: Application) -> None:
     """Registra los comandos; los nombres con guion se capturan por regex."""
+    application.add_handler(TypeHandler(Update, restrict_access), group=-1)
     for _, commands in CATEGORIES:
         for command in commands:
             valid: list[str] = [name for name in command.names if VALID_COMMAND.match(name)]
@@ -321,6 +337,9 @@ def main():
     token: str | None = os.getenv("TELEGRAM_BOT_TOKEN")
     if not token:
         print_styled(message="Falta TELEGRAM_BOT_TOKEN en .env\n", error_type="ValueError", color="red")
+        sys.exit(1)
+    if not (os.getenv("USER_ID") or "").isdigit():
+        print_styled(message="Falta USER_ID (numérico) en .env\n", error_type="ValueError", color="red")
         sys.exit(1)
 
     application: Application = (
