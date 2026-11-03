@@ -3,7 +3,7 @@ import html
 import ipaddress
 import ssl
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from urllib.parse import quote
 
 import httpx
@@ -215,13 +215,13 @@ async def ssl_check(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     days: int = int((expires - time.time()) // 86400)
     status: str = "🟢" if days > 30 else "🟡" if days > 7 else "🔴"
     names: list[str] = [value for kind, value in certificate.get("subjectAltName", ()) if kind == "DNS"]
-    issued: str = datetime.fromtimestamp(ssl.cert_time_to_seconds(certificate["notBefore"]), UTC).strftime("%Y-%m-%d")
+    issued: float = ssl.cert_time_to_seconds(certificate["notBefore"])
     await update.effective_message.reply_text(
         f"🔒 <b>{html.escape(host)}</b> · {status} certificado válido\n\n"
         f"👤 Sujeto: {html.escape(certificate_name(certificate['subject']))}\n"
         f"🏢 Emisor: {html.escape(certificate_name(certificate['issuer']))}\n"
-        f"📅 Emitido: {issued}\n"
-        f"⌛ Expira: {datetime.fromtimestamp(expires, UTC):%Y-%m-%d} ({days} días)\n"
+        f"📅 Emitido: {datetime.fromtimestamp(issued, timezone.utc):%Y-%m-%d}\n"
+        f"⌛ Expira: {datetime.fromtimestamp(expires, timezone.utc):%Y-%m-%d} ({days} días)\n"
         f"🌐 Dominios: {len(names)} ({html.escape(', '.join(names[:5]))}{', …' if len(names) > 5 else ''})"
     )
 
