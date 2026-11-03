@@ -25,7 +25,7 @@ from telegram.ext import (
     filters,
 )
 
-from commands import conversion, maths, security, text, weather
+from commands import conversion, maths, media, security, text, weather
 from decorators import Handler, handle_errors, print_styled
 
 
@@ -124,6 +124,12 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
                 "Calcula el n-ésimo número de Fibonacci"),
         Command(("percent",), maths.percent, "/percent <parte> <total>",
                 "Porcentaje que representa una parte sobre el total"),
+    ]),
+    ("🖼️ Medios y Códigos", [
+        Command(("qr",), media.qr, "/qr <texto_o_url>", "Genera un código QR"),
+        Command(("color",), media.color, "/color", "Color hexadecimal aleatorio con vista previa"),
+        Command(("palette",), media.palette, "/palette [3-5]", "Paleta de 3 a 5 colores con vista previa"),
+        Command(("avatar",), media.avatar, "/avatar <semilla>", "Avatar estilo GitHub a partir de una semilla"),
     ]),
     ("⚙️ Sistema", [
         Command(("start",), start, "/start", "Bienvenida y resumen de funciones"),
