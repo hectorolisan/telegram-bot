@@ -25,7 +25,7 @@ from telegram.ext import (
     filters,
 )
 
-from commands import conversion, maths, media, security, text, weather
+from commands import conversion, finance, maths, media, security, text, weather
 from decorators import Handler, handle_errors, print_styled
 
 
@@ -130,6 +130,14 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
         Command(("color",), media.color, "/color", "Color hexadecimal aleatorio con vista previa"),
         Command(("palette",), media.palette, "/palette [3-5]", "Paleta de 3 a 5 colores con vista previa"),
         Command(("avatar",), media.avatar, "/avatar <semilla>", "Avatar estilo GitHub a partir de una semilla"),
+    ]),
+    ("📈 Finanzas y Criptomonedas", [
+        Command(("crypto",), finance.crypto, "/crypto <simbolo>",
+                "Precio, variación 24h y volumen de una criptomoneda"),
+        Command(("currency", "moneda"), finance.currency, "/currency <simbolo>",
+                "Cambio actual y variación de una moneda (€, EUR, euro...)"),
+        Command(("financial_market", "financial-market"), finance.financial_market, "/financial_market",
+                "Resumen de los principales índices y criptomonedas"),
     ]),
     ("⚙️ Sistema", [
         Command(("start",), start, "/start", "Bienvenida y resumen de funciones"),
