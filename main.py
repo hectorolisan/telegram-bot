@@ -25,7 +25,7 @@ from telegram.ext import (
     filters,
 )
 
-from commands import text, weather
+from commands import conversion, text, weather
 from decorators import Handler, handle_errors, print_styled
 
 
@@ -101,6 +101,10 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
                 "Cuenta los caracteres con y sin espacios"),
         Command(("lorem", "loremipsum"), text.lorem, "/lorem <palabras>",
                 "Genera un texto Lorem Ipsum"),
+    ]),
+    ("🔄 Conversores", [
+        Command(("conversion", "convert"), conversion.conversion, "/conversion <cantidad> <origen> <destino>",
+                "Convierte divisas (EUR a USD), medidas (km a mi) o tiempo (horas a min)"),
     ]),
     ("⚙️ Sistema", [
         Command(("start",), start, "/start", "Bienvenida y resumen de funciones"),
