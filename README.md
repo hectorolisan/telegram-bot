@@ -73,6 +73,7 @@ telegram-bot/
 ├── pyproject.toml       # Ruff configuration
 ├── .env.example
 ├── .gitignore
+├── LICENSE
 └── README.md
 ```
 
@@ -161,6 +162,10 @@ Telegram only allows lowercase letters, digits and underscores in command names,
 - [CoinGecko](https://www.coingecko.com/en/api): crypto prices
 - Yahoo Finance: market indices
 - [PokéAPI](https://pokeapi.co/), [Wikipedia](https://es.wikipedia.org/), [JokeAPI](https://jokeapi.dev/), [ZenQuotes](https://zenquotes.io/), [TMDB](https://www.themoviedb.org/) / [TVmaze](https://www.tvmaze.com/api), [Wikimedia Feed](https://api.wikimedia.org/)
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
