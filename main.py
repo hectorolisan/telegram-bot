@@ -25,7 +25,7 @@ from telegram.ext import (
     filters,
 )
 
-from commands import conversion, security, text, weather
+from commands import conversion, maths, security, text, weather
 from decorators import Handler, handle_errors, print_styled
 
 
@@ -115,6 +115,15 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
         Command(("base64_decode",), security.base64_decode, "/base64_decode <codigo>",
                 "Decodifica un texto en Base64"),
         Command(("id",), security.show_id, "/id", "ID de Telegram del usuario y del chat"),
+    ]),
+    ("🧮 Matemáticas", [
+        Command(("calculate", "calc"), maths.calculate, "/calculate <expresion>",
+                "Evalúa una expresión matemática, ej. 2*(5+3)^2"),
+        Command(("prime",), maths.prime, "/prime <numero>", "Comprueba si un número es primo"),
+        Command(("fibonacci", "fibbonacci"), maths.fibonacci, "/fibonacci <numero>",
+                "Calcula el n-ésimo número de Fibonacci"),
+        Command(("percent",), maths.percent, "/percent <parte> <total>",
+                "Porcentaje que representa una parte sobre el total"),
     ]),
     ("⚙️ Sistema", [
         Command(("start",), start, "/start", "Bienvenida y resumen de funciones"),
