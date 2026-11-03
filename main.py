@@ -25,7 +25,7 @@ from telegram.ext import (
     filters,
 )
 
-from commands import conversion, text, weather
+from commands import conversion, security, text, weather
 from decorators import Handler, handle_errors, print_styled
 
 
@@ -105,6 +105,16 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
     ("🔄 Conversores", [
         Command(("conversion", "convert"), conversion.conversion, "/conversion <cantidad> <origen> <destino>",
                 "Convierte divisas (EUR a USD), medidas (km a mi) o tiempo (horas a min)"),
+    ]),
+    ("🛡️ Ciberseguridad", [
+        Command(("password",), security.password, "/password <longitud>",
+                "Genera una contraseña segura y aleatoria"),
+        Command(("hash",), security.hash_text, "/hash <texto>", "Hashes MD5, SHA-256 y SHA-512 de un texto"),
+        Command(("base64_encode",), security.base64_encode, "/base64_encode <texto>",
+                "Codifica un texto en Base64"),
+        Command(("base64_decode",), security.base64_decode, "/base64_decode <codigo>",
+                "Decodifica un texto en Base64"),
+        Command(("id",), security.show_id, "/id", "ID de Telegram del usuario y del chat"),
     ]),
     ("⚙️ Sistema", [
         Command(("start",), start, "/start", "Bienvenida y resumen de funciones"),
