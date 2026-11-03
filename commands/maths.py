@@ -12,14 +12,20 @@ from utils import format_number, get_args, parse_number, usage
 MAX_RESULT_DIGITS = 10_000
 MAX_FACTORIAL = 1_000
 MAX_FIBONACCI = 10_000
-MAX_PRIME = 10 ** 24
+MAX_PRIME = 10**24
 # Bases de Miller-Rabin deterministas hasta 3.3e24.
 PRIME_BASES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41)
 
 OPERATORS = {
-    ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv,
-    ast.FloorDiv: operator.floordiv, ast.Mod: operator.mod, ast.Pow: operator.pow,
-    ast.USub: operator.neg, ast.UAdd: operator.pos,
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+    ast.Pow: operator.pow,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
 }
 CONSTANTS = {"pi": math.pi, "e": math.e, "tau": math.tau}
 
@@ -32,9 +38,23 @@ def safe_factorial(value: float) -> int:
 
 
 FUNCTIONS = {
-    name: getattr(math, name) for name in (
-        "sqrt", "sin", "cos", "tan", "asin", "acos", "atan", "log", "log10", "log2", "exp",
-        "floor", "ceil", "radians", "degrees",
+    name: getattr(math, name)
+    for name in (
+        "sqrt",
+        "sin",
+        "cos",
+        "tan",
+        "asin",
+        "acos",
+        "atan",
+        "log",
+        "log10",
+        "log2",
+        "exp",
+        "floor",
+        "ceil",
+        "radians",
+        "degrees",
     )
 } | {"abs": abs, "round": round, "factorial": safe_factorial}
 
@@ -81,11 +101,11 @@ async def calculate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         result: int | float = evaluate(ast.parse(normalized, mode="eval"))
     except SyntaxError:
-        raise UserError("Expresión mal formada")
+        raise UserError("Expresión mal formada") from None
     except ZeroDivisionError:
-        raise UserError("División entre cero")
+        raise UserError("División entre cero") from None
     except (OverflowError, ValueError, TypeError) as e:
-        raise UserError(f"No se puede calcular: {html.escape(str(e))}")
+        raise UserError(f"No se puede calcular: {html.escape(str(e))}") from None
     await update.effective_message.reply_text(
         f"🧮 <code>{html.escape(expression)}</code>\n= <b>{format_result(result)}</b>"
     )
@@ -119,7 +139,7 @@ def parse_integer(value: str, command: str) -> int:
     try:
         return int(value)
     except ValueError:
-        raise usage(command)
+        raise usage(command) from None
 
 
 @handle_errors("Error al comprobar el número")

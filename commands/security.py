@@ -68,7 +68,7 @@ async def base64_decode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     try:
         decoded: str = base64.b64decode(code + "=" * (-len(code) % 4), validate=True).decode()
     except (binascii.Error, UnicodeDecodeError):
-        raise UserError("El código no es Base64 válido o no contiene texto UTF-8")
+        raise UserError("El código no es Base64 válido o no contiene texto UTF-8") from None
     await update.effective_message.reply_text(f"<code>{html.escape(decoded)}</code>")
 
 
@@ -76,6 +76,5 @@ async def base64_decode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def show_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Devuelve el ID del usuario y del chat."""
     await update.effective_message.reply_text(
-        f"🆔 Usuario: <code>{update.effective_user.id}</code>\n"
-        f"💬 Chat: <code>{update.effective_chat.id}</code>"
+        f"🆔 Usuario: <code>{update.effective_user.id}</code>\n💬 Chat: <code>{update.effective_chat.id}</code>"
     )

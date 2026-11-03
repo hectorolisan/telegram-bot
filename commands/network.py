@@ -1,11 +1,10 @@
 import asyncio
 import html
 import time
+from datetime import datetime
 
 import httpx
 import whois
-
-from datetime import datetime
 from telegram import Update
 from telegram.ext import ContextTypes
 
@@ -24,7 +23,7 @@ async def tcp_latency(ip: str, port: int) -> float | None:
     start: float = time.perf_counter()
     try:
         _, writer = await asyncio.wait_for(asyncio.open_connection(ip, port), PING_TIMEOUT)
-    except (OSError, asyncio.TimeoutError):
+    except (TimeoutError, OSError):
         return None
     latency: float = (time.perf_counter() - start) * 1000
     writer.close()
@@ -89,16 +88,20 @@ async def whois_lookup(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         raise UserError(f"No hay datos WHOIS para <b>{html.escape(domain)}</b>")
 
     fields: list[tuple[str, str]] = [
-        ("🌐 Dominio", "domain_name"), ("🏢 Registrador", "registrar"), ("👤 Organización", "org"),
-        ("🌍 País", "country"), ("📅 Creado", "creation_date"), ("🔄 Actualizado", "updated_date"),
+        ("🌐 Dominio", "domain_name"),
+        ("🏢 Registrador", "registrar"),
+        ("👤 Organización", "org"),
+        ("🌍 País", "country"),
+        ("📅 Creado", "creation_date"),
+        ("🔄 Actualizado", "updated_date"),
         ("⌛ Expira", "expiration_date"),
     ]
-    lines: list[str] = [
-        f"{label}: {format_whois_value(data[key])}" for label, key in fields if data.get(key)
-    ]
+    lines: list[str] = [f"{label}: {format_whois_value(data[key])}" for label, key in fields if data.get(key)]
     name_servers = data.get("name_servers")
     if name_servers:
-        servers: list[str] = sorted({server.lower() for server in ([name_servers] if isinstance(name_servers, str) else name_servers)})
+        servers: list[str] = sorted(
+            {server.lower() for server in ([name_servers] if isinstance(name_servers, str) else name_servers)}
+        )
         lines.append("🖧 DNS: " + ", ".join(map(html.escape, servers)))
     await update.effective_message.reply_text("\n".join(lines))
 
@@ -121,14 +124,16 @@ async def headers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             if response.status_code == 405:
                 response = await client.get(url)
         except httpx.HTTPError as e:
-            raise UserError(f"No se pudo conectar: {html.escape(str(e) or type(e).__name__)}")
+            raise UserError(f"No se pudo conectar: {html.escape(str(e) or type(e).__name__)}") from None
 
-    lines: str = html.escape("\n".join(
-        f"{name}: {value if len(value) <= MAX_HEADER_VALUE else value[:MAX_HEADER_VALUE] + '…'}"
-        for name, value in response.headers.items()
-    ))
+    lines: str = html.escape(
+        "\n".join(
+            f"{name}: {value if len(value) <= MAX_HEADER_VALUE else value[:MAX_HEADER_VALUE] + '…'}"
+            for name, value in response.headers.items()
+        )
+    )
     if len(lines) > MAX_HEADERS_LENGTH:
-        lines = lines[:lines.rfind("\n", 0, MAX_HEADERS_LENGTH)] + "\n…"
+        lines = lines[: lines.rfind("\n", 0, MAX_HEADERS_LENGTH)] + "\n…"
     await update.effective_message.reply_text(
         f"🌐 <b>{response.status_code} {html.escape(response.reason_phrase)}</b> · {html.escape(url)}\n\n"
         f"<pre>{lines}</pre>"

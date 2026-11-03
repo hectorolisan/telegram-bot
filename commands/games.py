@@ -26,12 +26,11 @@ async def number(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         values: list[int] = [int(arg) for arg in args]
     except ValueError:
-        raise usage("/number <min> <max>")
+        raise usage("/number <min> <max>") from None
     if len(values) > 2:
         raise usage("/number <min> <max>")
     low, high = (
-        NUMBER_DEFAULT_RANGE if not values else (NUMBER_DEFAULT_RANGE[0], values[0]) if len(values) == 1
-        else values
+        NUMBER_DEFAULT_RANGE if not values else (NUMBER_DEFAULT_RANGE[0], values[0]) if len(values) == 1 else values
     )
     low, high = min(low, high), max(low, high)
     await update.effective_message.reply_text(f"🎲 Número entre {low} y {high}: <b>{random.randint(low, high)}</b>")

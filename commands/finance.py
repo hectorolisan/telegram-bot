@@ -1,7 +1,7 @@
 import asyncio
 import html
-
 from datetime import date, timedelta
+
 from telegram import Update
 from telegram.ext import ContextTypes
 
@@ -13,7 +13,7 @@ COINGECKO_URL = "https://api.coingecko.com/api/v3"
 YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
 YAHOO_HEADERS = {"User-Agent": "Mozilla/5.0"}
 CURRENCY_QUOTES = ("EUR", "USD", "GBP", "JPY", "CHF")
-MARKET_INDICES = {"^IBEX": "IBEX 35", "^GSPC": "S&amp;P 500","^IXIC": "Nasdaq", "^DJI": "Dow Jones"}
+MARKET_INDICES = {"^IBEX": "IBEX 35", "^GSPC": "S&amp;P 500", "^IXIC": "Nasdaq", "^DJI": "Dow Jones"}
 MARKET_CRYPTOS = {"bitcoin": "BTC", "ethereum": "ETH", "binancecoin": "BNB", "solana": "SOL", "dogecoin": "DOGE"}
 
 
@@ -46,18 +46,23 @@ async def crypto(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     coins: list[dict] = (await fetch_json(f"{COINGECKO_URL}/search", params={"query": query}))["coins"]
     coin: dict | None = next(
         (c for c in coins if query.lower() in (c["symbol"].lower(), c["id"], c["name"].lower())),
-        coins[0] if coins else None
+        coins[0] if coins else None,
     )
     if not coin:
         raise UserError(f"No se encontró la criptomoneda <b>{html.escape(query)}</b>")
 
-    data: dict = (await fetch_json(f"{COINGECKO_URL}/simple/price", params={
-        "ids": coin["id"],
-        "vs_currencies": "usd,eur",
-        "include_24hr_change": "true",
-        "include_24hr_vol": "true",
-        "include_market_cap": "true",
-    }))[coin["id"]]
+    data: dict = (
+        await fetch_json(
+            f"{COINGECKO_URL}/simple/price",
+            params={
+                "ids": coin["id"],
+                "vs_currencies": "usd,eur",
+                "include_24hr_change": "true",
+                "include_24hr_vol": "true",
+                "include_market_cap": "true",
+            },
+        )
+    )[coin["id"]]
     await update.effective_message.reply_text(
         f"🪙 <b>{html.escape(coin['name'])} ({html.escape(coin['symbol'].upper())})</b>\n\n"
         f"💵 Precio: {format_price(data['usd'])} $ · {format_price(data['eur'])} €\n"
@@ -90,8 +95,9 @@ async def currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         for quote in quotes
     ]
     await update.effective_message.reply_text(
-        f"💱 <b>{html.escape(supported[code])} ({code})</b>\n\n" + "\n".join(lines) +
-        f"\n\n📅 BCE {days[-1]} (variación frente a {days[-2]})\n"
+        f"💱 <b>{html.escape(supported[code])} ({code})</b>\n\n"
+        + "\n".join(lines)
+        + f"\n\n📅 BCE {days[-1]} (variación frente a {days[-2]})\n"
         "📊 Volumen: N/D (las divisas no tienen un volumen público centralizado)"
     )
 
@@ -114,21 +120,27 @@ async def financial_market(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     """Resume el estado de los principales índices y criptomonedas."""
     indices, cryptos = await asyncio.gather(
         asyncio.gather(*(fetch_index(symbol) for symbol in MARKET_INDICES), return_exceptions=True),
-        fetch_json(f"{COINGECKO_URL}/simple/price", params={
-            "ids": ",".join(MARKET_CRYPTOS), "vs_currencies": "usd", "include_24hr_change": "true",
-        }),
+        fetch_json(
+            f"{COINGECKO_URL}/simple/price",
+            params={
+                "ids": ",".join(MARKET_CRYPTOS),
+                "vs_currencies": "usd",
+                "include_24hr_change": "true",
+            },
+        ),
     )
     index_lines: list[str] = [
-        f"• {name}: N/D" if isinstance(result, Exception)
+        f"• {name}: N/D"
+        if isinstance(result, Exception)
         else f"• {name}: <b>{format_number(result[0])}</b>  {format_change(result[1])}"
-        for name, result in zip(MARKET_INDICES.values(), indices)
+        for name, result in zip(MARKET_INDICES.values(), indices, strict=True)
     ]
     crypto_lines: list[str] = [
         f"• {symbol}: <b>{format_price(cryptos[coin_id]['usd'])} $</b>  "
         f"{format_change(cryptos[coin_id].get('usd_24h_change'))}"
-        for coin_id, symbol in MARKET_CRYPTOS.items() if coin_id in cryptos
+        for coin_id, symbol in MARKET_CRYPTOS.items()
+        if coin_id in cryptos
     ]
     await update.effective_message.reply_text(
-        "📈 <b>Índices</b>\n" + "\n".join(index_lines) +
-        "\n\n🪙 <b>Criptomonedas (24h)</b>\n" + "\n".join(crypto_lines)
+        "📈 <b>Índices</b>\n" + "\n".join(index_lines) + "\n\n🪙 <b>Criptomonedas (24h)</b>\n" + "\n".join(crypto_lines)
     )

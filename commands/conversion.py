@@ -10,31 +10,72 @@ from utils import fetch_json, format_number, get_args, parse_number, usage
 
 FRANKFURTER_URL = "https://api.frankfurter.dev/v1"
 CURRENCY_ALIASES = {
-    "€": "EUR", "euro": "EUR", "euros": "EUR",
-    "$": "USD", "dolar": "USD", "dólar": "USD", "dolares": "USD", "dólares": "USD",
-    "£": "GBP", "libra": "GBP", "libras": "GBP",
-    "¥": "JPY", "yen": "JPY", "yenes": "JPY",
-    "franco": "CHF", "francos": "CHF", "yuan": "CNY", "yuanes": "CNY",
-    "real": "BRL", "reales": "BRL", "rupia": "INR", "rupias": "INR",
-    "peso": "MXN", "pesos": "MXN",
+    "€": "EUR",
+    "euro": "EUR",
+    "euros": "EUR",
+    "$": "USD",
+    "dolar": "USD",
+    "dólar": "USD",
+    "dolares": "USD",
+    "dólares": "USD",
+    "£": "GBP",
+    "libra": "GBP",
+    "libras": "GBP",
+    "¥": "JPY",
+    "yen": "JPY",
+    "yenes": "JPY",
+    "franco": "CHF",
+    "francos": "CHF",
+    "yuan": "CNY",
+    "yuanes": "CNY",
+    "real": "BRL",
+    "reales": "BRL",
+    "rupia": "INR",
+    "rupias": "INR",
+    "peso": "MXN",
+    "pesos": "MXN",
 }
 UNIT_ALIASES = {
-    "c": "degC", "°c": "degC", "ºc": "degC", "celsius": "degC",
-    "f": "degF", "°f": "degF", "ºf": "degF", "fahrenheit": "degF",
+    "c": "degC",
+    "°c": "degC",
+    "ºc": "degC",
+    "celsius": "degC",
+    "f": "degF",
+    "°f": "degF",
+    "ºf": "degF",
+    "fahrenheit": "degF",
     "k": "kelvin",
 }
 for singular, plural, unit in [
-    ("segundo", "segundos", "second"), ("seg", "segs", "second"), ("minuto", "minutos", "minute"),
-    ("hora", "horas", "hour"), ("dia", "dias", "day"), ("día", "días", "day"),
-    ("semana", "semanas", "week"), ("mes", "meses", "month"), ("año", "años", "year"),
-    ("metro", "metros", "meter"), ("kilometro", "kilometros", "kilometer"),
-    ("kilómetro", "kilómetros", "kilometer"), ("centimetro", "centimetros", "centimeter"),
-    ("centímetro", "centímetros", "centimeter"), ("milimetro", "milimetros", "millimeter"),
-    ("milímetro", "milímetros", "millimeter"), ("milla", "millas", "mile"), ("pie", "pies", "foot"),
-    ("pulgada", "pulgadas", "inch"), ("yarda", "yardas", "yard"), ("gramo", "gramos", "gram"),
-    ("kilo", "kilos", "kilogram"), ("kilogramo", "kilogramos", "kilogram"), ("onza", "onzas", "ounce"),
-    ("tonelada", "toneladas", "metric_ton"), ("litro", "litros", "liter"),
-    ("mililitro", "mililitros", "milliliter"), ("galon", "galones", "gallon"), ("galón", "galones", "gallon"),
+    ("segundo", "segundos", "second"),
+    ("seg", "segs", "second"),
+    ("minuto", "minutos", "minute"),
+    ("hora", "horas", "hour"),
+    ("dia", "dias", "day"),
+    ("día", "días", "day"),
+    ("semana", "semanas", "week"),
+    ("mes", "meses", "month"),
+    ("año", "años", "year"),
+    ("metro", "metros", "meter"),
+    ("kilometro", "kilometros", "kilometer"),
+    ("kilómetro", "kilómetros", "kilometer"),
+    ("centimetro", "centimetros", "centimeter"),
+    ("centímetro", "centímetros", "centimeter"),
+    ("milimetro", "milimetros", "millimeter"),
+    ("milímetro", "milímetros", "millimeter"),
+    ("milla", "millas", "mile"),
+    ("pie", "pies", "foot"),
+    ("pulgada", "pulgadas", "inch"),
+    ("yarda", "yardas", "yard"),
+    ("gramo", "gramos", "gram"),
+    ("kilo", "kilos", "kilogram"),
+    ("kilogramo", "kilogramos", "kilogram"),
+    ("onza", "onzas", "ounce"),
+    ("tonelada", "toneladas", "metric_ton"),
+    ("litro", "litros", "liter"),
+    ("mililitro", "mililitros", "milliliter"),
+    ("galon", "galones", "gallon"),
+    ("galón", "galones", "gallon"),
 ]:
     UNIT_ALIASES[singular] = UNIT_ALIASES[plural] = unit
 
@@ -58,9 +99,7 @@ async def convert_currency(amount: float, source: str, target: str) -> str:
     """Convierte divisas con los tipos de cambio del BCE."""
     if source == target:
         return f"{format_number(amount)} {source} = {format_number(amount)} {target}"
-    data: dict = await fetch_json(
-        f"{FRANKFURTER_URL}/latest", params={"base": source, "symbols": target}
-    )
+    data: dict = await fetch_json(f"{FRANKFURTER_URL}/latest", params={"base": source, "symbols": target})
     rate: float = data["rates"][target]
     return (
         f"💱 {format_number(amount)} {source} = <b>{format_number(amount * rate)} {target}</b>\n"
@@ -75,13 +114,14 @@ def convert_unit(amount: float, source: str, target: str) -> str:
     try:
         result = ureg.Quantity(amount, source_unit).to(target_unit)
     except UndefinedUnitError as e:
-        raise UserError(f"Unidad desconocida: <code>{html.escape(', '.join(e.unit_names))}</code>")
+        raise UserError(f"Unidad desconocida: <code>{html.escape(', '.join(e.unit_names))}</code>") from None
     except DimensionalityError:
         raise UserError(
             f"No se puede convertir <code>{html.escape(source)}</code> a <code>{html.escape(target)}</code>"
-        )
+        ) from None
     value: str = format_number(result.magnitude, 6).rstrip("0").rstrip(",")
-    return f"🔄 {format_number(amount, 6).rstrip('0').rstrip(',')} {html.escape(source)} = <b>{value} {html.escape(target)}</b>"
+    original: str = format_number(amount, 6).rstrip("0").rstrip(",")
+    return f"🔄 {original} {html.escape(source)} = <b>{value} {html.escape(target)}</b>"
 
 
 @handle_errors("Error al realizar la conversión")

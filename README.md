@@ -69,6 +69,8 @@ telegram-bot/
 ├── decorators.py        # Styled printing and error-handling utilities
 ├── utils.py             # HTTP helpers, argument parsing and formatting
 ├── requirements.txt     # Project dependencies
+├── requirements-dev.txt # Development tools (ruff, pytest)
+├── pyproject.toml       # Ruff configuration
 ├── .env.example
 ├── .gitignore
 └── README.md
@@ -90,6 +92,21 @@ telegram-bot/
 
 ```bash
 python main.py
+```
+
+## Development
+
+Install the development tools:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+Lint and format with `ruff`:
+
+```bash
+ruff check . --fix
+ruff format .
 ```
 
 ## Commands

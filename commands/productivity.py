@@ -1,7 +1,7 @@
 import html
 import re
-
 from datetime import datetime
+
 from telegram import ReplyParameters, Update
 from telegram.ext import ContextTypes
 
@@ -12,8 +12,18 @@ TIMER_MAX_SECONDS = 24 * 3600
 TIMER_UNITS = {"h": 3600, "m": 60, "s": 1, "": 1}
 WEEKDAYS = ("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
 MONTHS = (
-    "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
 )
 
 
@@ -22,8 +32,7 @@ def parse_duration(text: str) -> int:
     if not re.fullmatch(r"(\s*\d+\s*[hms]?)+", text, re.IGNORECASE):
         raise usage("/timer <segundos>  (también 5m, 1h30m)")
     return sum(
-        int(amount) * TIMER_UNITS[unit.lower()]
-        for amount, unit in re.findall(r"(\d+)\s*([hms]?)", text, re.IGNORECASE)
+        int(amount) * TIMER_UNITS[unit.lower()] for amount, unit in re.findall(r"(\d+)\s*([hms]?)", text, re.IGNORECASE)
     )
 
 
@@ -41,7 +50,7 @@ async def timer_alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.send_message(
         chat_id=job.chat_id,
         text=f"⏰ ¡Tiempo! Temporizador de {format_duration(job.data['seconds'])} finalizado",
-        reply_parameters=ReplyParameters(message_id=job.data["message_id"], allow_sending_without_reply=True)
+        reply_parameters=ReplyParameters(message_id=job.data["message_id"], allow_sending_without_reply=True),
     )
 
 
@@ -58,7 +67,7 @@ async def timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         timer_alarm,
         seconds,
         chat_id=update.effective_chat.id,
-        data={"seconds": seconds, "message_id": update.effective_message.message_id}
+        data={"seconds": seconds, "message_id": update.effective_message.message_id},
     )
     await update.effective_message.reply_text(f"⏱️ Temporizador de <b>{format_duration(seconds)}</b> en marcha")
 

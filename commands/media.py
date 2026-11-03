@@ -1,10 +1,9 @@
 import colorsys
 import hashlib
 import random
+from io import BytesIO
 
 import qrcode
-
-from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -30,7 +29,7 @@ def to_png(image: Image.Image) -> BytesIO:
 
 def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
     """Convierte un color hexadecimal a RGB."""
-    return tuple(int(hex_color[i:i + 2], 16) for i in (1, 3, 5))
+    return tuple(int(hex_color[i : i + 2], 16) for i in (1, 3, 5))
 
 
 def text_color(hex_color: str) -> str:
@@ -77,8 +76,7 @@ async def color(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     hex_color: str = f"#{random.randint(0, 0xFFFFFF):06X}"
     r, g, b = hex_to_rgb(hex_color)
     await update.effective_message.reply_photo(
-        to_png(draw_swatches([hex_color])),
-        caption=f"🎨 <code>{hex_color}</code>\nRGB({r}, {g}, {b})"
+        to_png(draw_swatches([hex_color])), caption=f"🎨 <code>{hex_color}</code>\nRGB({r}, {g}, {b})"
     )
 
 
@@ -92,12 +90,10 @@ async def palette(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     base_hue: float = random.random()
     hue_step: float = random.uniform(0.04, 0.33)
     colors: list[str] = [
-        hls_to_hex(base_hue + i * hue_step, random.uniform(0.35, 0.75), random.uniform(0.45, 0.9))
-        for i in range(count)
+        hls_to_hex(base_hue + i * hue_step, random.uniform(0.35, 0.75), random.uniform(0.45, 0.9)) for i in range(count)
     ]
     await update.effective_message.reply_photo(
-        to_png(draw_swatches(colors)),
-        caption="🎨 " + " · ".join(f"<code>{c}</code>" for c in colors)
+        to_png(draw_swatches(colors)), caption="🎨 " + " · ".join(f"<code>{c}</code>" for c in colors)
     )
 
 

@@ -2,9 +2,9 @@ import html
 import os
 import random
 import re
-
 from datetime import datetime
 from io import BytesIO
+
 from PIL import Image
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -25,14 +25,33 @@ EPHEMERIS_LIMIT = 10
 SPRITE_SCALE = 4
 
 POKEMON_TYPES = {
-    "normal": "Normal", "fire": "Fuego", "water": "Agua", "electric": "Eléctrico", "grass": "Planta",
-    "ice": "Hielo", "fighting": "Lucha", "poison": "Veneno", "ground": "Tierra", "flying": "Volador",
-    "psychic": "Psíquico", "bug": "Bicho", "rock": "Roca", "ghost": "Fantasma", "dragon": "Dragón",
-    "dark": "Siniestro", "steel": "Acero", "fairy": "Hada", "stellar": "Astral",
+    "normal": "Normal",
+    "fire": "Fuego",
+    "water": "Agua",
+    "electric": "Eléctrico",
+    "grass": "Planta",
+    "ice": "Hielo",
+    "fighting": "Lucha",
+    "poison": "Veneno",
+    "ground": "Tierra",
+    "flying": "Volador",
+    "psychic": "Psíquico",
+    "bug": "Bicho",
+    "rock": "Roca",
+    "ghost": "Fantasma",
+    "dragon": "Dragón",
+    "dark": "Siniestro",
+    "steel": "Acero",
+    "fairy": "Hada",
+    "stellar": "Astral",
 }
 POKEMON_STATS = {
-    "hp": "❤️ PS", "attack": "⚔️ Ataque", "defense": "🛡️ Defensa",
-    "special-attack": "✨ At. Esp.", "special-defense": "🔰 Def. Esp.", "speed": "💨 Velocidad",
+    "hp": "❤️ PS",
+    "attack": "⚔️ Ataque",
+    "defense": "🛡️ Defensa",
+    "special-attack": "✨ At. Esp.",
+    "special-defense": "🔰 Def. Esp.",
+    "speed": "💨 Velocidad",
 }
 
 
@@ -92,7 +111,8 @@ async def joke(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if data.get("error"):
         raise UserError("No hay chistes disponibles ahora mismo")
     text: str = (
-        html.escape(data["joke"]) if data["type"] == "single"
+        html.escape(data["joke"])
+        if data["type"] == "single"
         else f"{html.escape(data['setup'])}\n\n<tg-spoiler>{html.escape(data['delivery'])}</tg-spoiler>"
     )
     await update.effective_message.reply_text(f"😂 {text}")
@@ -109,13 +129,16 @@ async def quote(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def random_tmdb(api_key: str, kind: str) -> tuple[str | None, str]:
     """Elige una película ("movie") o serie ("tv") popular aleatoria de TMDB."""
-    data: dict = await fetch_json(f"{TMDB_URL}/discover/{kind}", params={
-        "api_key": api_key,
-        "language": "es-ES",
-        "sort_by": "popularity.desc",
-        "vote_count.gte": 1000,
-        "page": random.randint(1, 20),
-    })
+    data: dict = await fetch_json(
+        f"{TMDB_URL}/discover/{kind}",
+        params={
+            "api_key": api_key,
+            "language": "es-ES",
+            "sort_by": "popularity.desc",
+            "vote_count.gte": 1000,
+            "page": random.randint(1, 20),
+        },
+    )
     item: dict = random.choice(data["results"])
     title: str = item.get("title") or item.get("name")
     released: str = (item.get("release_date") or item.get("first_air_date") or "")[:4]
@@ -133,8 +156,7 @@ async def random_tvmaze() -> tuple[str | None, str]:
     """Elige una serie bien valorada aleatoria de TVmaze."""
     shows: list[dict] = await fetch_json(TVMAZE_URL, params={"page": random.randint(0, 250)})
     candidates: list[dict] = [
-        s for s in shows
-        if ((s.get("rating") or {}).get("average") or 0) >= 7 and s.get("image") and s.get("summary")
+        s for s in shows if ((s.get("rating") or {}).get("average") or 0) >= 7 and s.get("image") and s.get("summary")
     ] or shows
     show: dict = random.choice(candidates)
     summary: str = re.sub(r"<[^>]+>", "", show.get("summary") or "Sin sinopsis.")
@@ -172,9 +194,7 @@ async def ephemeris(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not selected:
         raise UserError("No hay efemérides para hoy")
     events: list[dict] = sorted(random.sample(selected, min(EPHEMERIS_LIMIT, len(selected))), key=lambda e: e["year"])
-    lines: list[str] = [
-        f"• <b>{event['year']}</b> — {html.escape(truncate(event['text'], 300))}" for event in events
-    ]
+    lines: list[str] = [f"• <b>{event['year']}</b> — {html.escape(truncate(event['text'], 300))}" for event in events]
     await update.effective_message.reply_text(
         f"📅 <b>Efemérides del {today.day:02d}/{today.month:02d}</b>\n\n" + "\n\n".join(lines)
     )

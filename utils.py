@@ -2,13 +2,12 @@ import html
 import ipaddress
 import os
 import socket
-
-import httpx
-
-from telegram import Update
 from typing import Any
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+import httpx
+from telegram import Update
 
 from decorators import UserError
 
@@ -23,12 +22,12 @@ def get_timezone(name: str | None = None) -> ZoneInfo:
     try:
         return ZoneInfo(zone)
     except (ZoneInfoNotFoundError, ValueError):
-        raise UserError(f"Zona horaria no válida: <code>{html.escape(zone)}</code>")
+        raise UserError(f"Zona horaria no válida: <code>{html.escape(zone)}</code>") from None
 
 
 def truncate(text: str, limit: int) -> str:
     """Recorta un texto plano a un máximo de caracteres."""
-    return text if len(text) <= limit else text[:limit - 1].rstrip() + "…"
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
 
 
 def get_args(update: Update) -> str:
@@ -47,7 +46,7 @@ def parse_number(value: str) -> float:
     try:
         return float(value.replace(",", "."))
     except ValueError:
-        raise UserError(f"Número no válido: <code>{html.escape(value)}</code>")
+        raise UserError(f"Número no válido: <code>{html.escape(value)}</code>") from None
 
 
 def format_number(value: float, decimals: int = 2) -> str:
@@ -62,7 +61,7 @@ def http_client(**kwargs: Any) -> httpx.AsyncClient:
         timeout=TIMEOUT,
         follow_redirects=kwargs.pop("follow_redirects", True),
         headers={"User-Agent": USER_AGENT, **kwargs.pop("headers", {})},
-        **kwargs
+        **kwargs,
     )
 
 
@@ -95,7 +94,7 @@ def resolve_public_ip(host: str) -> str:
     try:
         ip: str = socket.gethostbyname(host)
     except socket.gaierror:
-        raise UserError(f"No se pudo resolver <code>{html.escape(host)}</code>")
+        raise UserError(f"No se pudo resolver <code>{html.escape(host)}</code>") from None
     if not ipaddress.ip_address(ip).is_global:
         raise UserError("Solo se permiten destinos públicos")
     return ip

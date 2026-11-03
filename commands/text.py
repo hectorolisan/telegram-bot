@@ -41,8 +41,7 @@ async def count_letters(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         raise usage("/count_letter <texto>")
     without_spaces: int = len("".join(text.split()))
     await update.effective_message.reply_text(
-        f"🔤 Caracteres (con espacios): <b>{len(text)}</b>\n"
-        f"🔡 Caracteres (sin espacios): <b>{without_spaces}</b>"
+        f"🔤 Caracteres (con espacios): <b>{len(text)}</b>\n🔡 Caracteres (sin espacios): <b>{without_spaces}</b>"
     )
 
 
