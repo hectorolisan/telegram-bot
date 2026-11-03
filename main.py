@@ -25,7 +25,9 @@ from telegram.ext import (
     filters,
 )
 
-from commands import conversion, finance, fun, maths, media, network, security, text, weather
+from commands import (
+    conversion, finance, fun, games, maths, media, network, productivity, security, text, weather
+)
 from decorators import Handler, handle_errors, print_styled
 
 
@@ -152,6 +154,17 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
         Command(("film",), fun.film, "/film", "Película o serie aleatoria con sinopsis, nota y cartel"),
         Command(("ephemeris",), fun.ephemeris, "/ephemeris", "Hechos históricos de un día como hoy"),
     ]),
+    ("🎲 Azar y Juegos", [
+        Command(("coin",), games.coin, "/coin", "Lanza una moneda: cara o cruz"),
+        Command(("number", "num"), games.number, "/number [min] [max]",
+                "Número aleatorio en un rango (0-100 por defecto)"),
+        Command(("die",), games.die, "/die [caras] o /d[X]", "Lanza un dado de 6 caras o de X caras"),
+    ]),
+    ("⏱️ Productividad", [
+        Command(("timer",), productivity.timer, "/timer <segundos>",
+                "Temporizador con aviso al finalizar (admite 5m, 1h30m)"),
+        Command(("now",), productivity.now, "/now [zona]", "Hora, fecha, zona horaria y día del año"),
+    ]),
     ("⚙️ Sistema", [
         Command(("start",), start, "/start", "Bienvenida y resumen de funciones"),
         Command(("help",), help_command, "/help", "Menú interactivo de ayuda"),
@@ -174,6 +187,7 @@ def register_commands(application: Application) -> None:
                 application.add_handler(MessageHandler(
                     filters.Regex(rf"^/({pattern})(@\w+)?(\s|$)"), command.callback
                 ))
+    application.add_handler(MessageHandler(filters.Regex(r"^/d\d+(@\w+)?(\s|$)"), games.die))
     application.add_handler(MessageHandler(filters.LOCATION, weather.weather_location))
     application.add_handler(CallbackQueryHandler(help_callback, pattern=r"^help:"))
 
