@@ -69,12 +69,13 @@ telegram-bot/
 │   ├── settings.py      # User preferences (timezone, city, currency)
 │   ├── text.py          # Word/character counters, Lorem Ipsum, translator
 │   └── weather.py       # Current weather
+├── tests/               # Pytest suite for helpers and commands
 ├── main.py              # Bot entry point, command registry, start and help
 ├── decorators.py        # Styled printing and error-handling utilities
 ├── utils.py             # HTTP helpers, argument parsing and formatting
 ├── requirements.txt     # Project dependencies
 ├── requirements-dev.txt # Development tools (ruff, pytest)
-├── pyproject.toml       # Ruff configuration
+├── pyproject.toml       # Ruff and pytest configuration
 ├── .env.example
 ├── .gitignore
 ├── LICENSE
@@ -112,6 +113,12 @@ Lint and format with `ruff`:
 ```bash
 ruff check . --fix
 ruff format .
+```
+
+Run the tests (HTTP calls are mocked with `respx`):
+
+```bash
+pytest
 ```
 
 ## Commands
