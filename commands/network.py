@@ -1,7 +1,10 @@
 import asyncio
 import html
+import ipaddress
+import ssl
 import time
-from datetime import datetime
+from datetime import UTC, datetime
+from urllib.parse import quote
 
 import httpx
 import whois
@@ -9,13 +12,20 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from decorators import UserError, handle_errors
-from utils import extract_host, get_args, http_client, resolve_public_ip, usage
+from utils import extract_host, fetch_json, get_args, http_client, resolve_public_ip, usage
 
 PING_ATTEMPTS = 4
 PING_TIMEOUT = 3
 PING_PORTS = (443, 80)
 MAX_HEADERS_LENGTH = 3500
 MAX_HEADER_VALUE = 200
+# shortcut: ip-api gratis solo admite HTTP; pasar a la versión de pago si hace falta HTTPS
+IP_API_URL = "http://ip-api.com/json/{target}"
+IP_API_FIELDS = "status,message,query,country,regionName,city,zip,lat,lon,timezone,isp,org,as"
+SSL_TIMEOUT = 10
+DNS_URL = "https://dns.google/resolve"
+DNS_TYPES = {"A": 1, "AAAA": 28, "CNAME": 5, "MX": 15, "NS": 2, "TXT": 16}
+MAX_DNS_VALUE = 200
 
 
 async def tcp_latency(ip: str, port: int) -> float | None:
@@ -138,3 +148,108 @@ async def headers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"🌐 <b>{response.status_code} {html.escape(response.reason_phrase)}</b> · {html.escape(url)}\n\n"
         f"<pre>{lines}</pre>"
     )
+
+
+@handle_errors("Error al consultar la IP")
+async def ip_lookup(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Muestra la geolocalización y el proveedor de una IP o dominio."""
+    target: str = get_args(update)
+    if not target:
+        raise usage("/ip <ip o dominio>")
+    try:
+        host: str = str(ipaddress.ip_address(target))
+    except ValueError:
+        host = extract_host(target)
+    data: dict = await fetch_json(
+        IP_API_URL.format(target=quote(host, safe="")), params={"lang": "es", "fields": IP_API_FIELDS}
+    )
+    if data.get("status") != "success":
+        raise UserError(f"No hay datos para <b>{html.escape(host)}</b> ({html.escape(data.get('message', '?'))})")
+    location: str = ", ".join(filter(None, [data.get("city"), data.get("regionName"), data.get("country")]))
+    await update.effective_message.reply_text(
+        f"🌐 <b>{html.escape(data['query'])}</b>\n\n"
+        f"📍 Ubicación: {html.escape(location or 'N/D')} {html.escape(data.get('zip') or '')}\n"
+        f"🧭 Coordenadas: {data.get('lat')}, {data.get('lon')}\n"
+        f"🕒 Zona horaria: {html.escape(data.get('timezone') or 'N/D')}\n"
+        f"🏢 Proveedor: {html.escape(data.get('isp') or 'N/D')}\n"
+        f"🏛️ Organización: {html.escape(data.get('org') or 'N/D')}\n"
+        f"🔢 AS: {html.escape(data.get('as') or 'N/D')}"
+    )
+
+
+async def fetch_certificate(host: str, ip: str) -> dict:
+    """Abre una conexión TLS validada y devuelve el certificado del servidor."""
+    _, writer = await asyncio.wait_for(
+        asyncio.open_connection(ip, 443, ssl=ssl.create_default_context(), server_hostname=host), SSL_TIMEOUT
+    )
+    certificate: dict = writer.get_extra_info("peercert")
+    writer.close()
+    return certificate
+
+
+def certificate_name(entries: tuple) -> str:
+    """Obtiene el nombre común u organización de un sujeto o emisor."""
+    fields: dict[str, str] = dict(pair for entry in entries for pair in entry)
+    return fields.get("commonName") or fields.get("organizationName") or "N/D"
+
+
+@handle_errors("Error al comprobar el certificado")
+async def ssl_check(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Comprueba la validez y caducidad del certificado TLS de un dominio."""
+    target: str = get_args(update)
+    if not target:
+        raise usage("/ssl <dominio>")
+    host: str = extract_host(target)
+    ip: str = await asyncio.to_thread(resolve_public_ip, host)
+    try:
+        certificate: dict = await fetch_certificate(host, ip)
+    except ssl.SSLCertVerificationError as e:
+        raise UserError(
+            f"🔴 Certificado no válido para <b>{html.escape(host)}</b>: {html.escape(e.verify_message)}"
+        ) from None
+    except (OSError, TimeoutError):
+        raise UserError(f"No se pudo conectar a <b>{html.escape(host)}</b> por el puerto 443") from None
+
+    expires: float = ssl.cert_time_to_seconds(certificate["notAfter"])
+    days: int = int((expires - time.time()) // 86400)
+    status: str = "🟢" if days > 30 else "🟡" if days > 7 else "🔴"
+    names: list[str] = [value for kind, value in certificate.get("subjectAltName", ()) if kind == "DNS"]
+    issued: str = datetime.fromtimestamp(ssl.cert_time_to_seconds(certificate["notBefore"]), UTC).strftime("%Y-%m-%d")
+    await update.effective_message.reply_text(
+        f"🔒 <b>{html.escape(host)}</b> · {status} certificado válido\n\n"
+        f"👤 Sujeto: {html.escape(certificate_name(certificate['subject']))}\n"
+        f"🏢 Emisor: {html.escape(certificate_name(certificate['issuer']))}\n"
+        f"📅 Emitido: {issued}\n"
+        f"⌛ Expira: {datetime.fromtimestamp(expires, UTC):%Y-%m-%d} ({days} días)\n"
+        f"🌐 Dominios: {len(names)} ({html.escape(', '.join(names[:5]))}{', …' if len(names) > 5 else ''})"
+    )
+
+
+async def dns_records(domain: str, record_type: str) -> list[str]:
+    """Consulta un tipo de registro DNS mediante DNS sobre HTTPS."""
+    data: dict = await fetch_json(DNS_URL, params={"name": domain, "type": record_type})
+    if data.get("Status") == 3:
+        raise UserError(f"El dominio <b>{html.escape(domain)}</b> no existe")
+    return [
+        answer["data"] if len(answer["data"]) <= MAX_DNS_VALUE else answer["data"][:MAX_DNS_VALUE] + "…"
+        for answer in data.get("Answer", [])
+        if answer["type"] == DNS_TYPES[record_type]
+    ]
+
+
+@handle_errors("Error al consultar el DNS")
+async def dns(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Muestra los registros DNS principales de un dominio."""
+    target: str = get_args(update)
+    if not target:
+        raise usage("/dns <dominio>")
+    domain: str = extract_host(target)
+    results: list[list[str]] = await asyncio.gather(*(dns_records(domain, kind) for kind in DNS_TYPES))
+    sections: list[str] = [
+        f"<b>{kind}</b>\n" + "\n".join(f"• <code>{html.escape(value)}</code>" for value in values)
+        for kind, values in zip(DNS_TYPES, results, strict=True)
+        if values
+    ]
+    if not sections:
+        raise UserError(f"No hay registros DNS para <b>{html.escape(domain)}</b>")
+    await update.effective_message.reply_text(f"🖧 <b>DNS de {html.escape(domain)}</b>\n\n" + "\n\n".join(sections))

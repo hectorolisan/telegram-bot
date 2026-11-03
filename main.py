@@ -218,6 +218,9 @@ CATEGORIES: list[tuple[str, list[Command]]] = [
             Command(("ping",), network.ping, "/ping <dominio>", "Latencia y disponibilidad de un sitio web o IP"),
             Command(("whois",), network.whois_lookup, "/whois <dominio>", "Información de registro de un dominio"),
             Command(("headers",), network.headers, "/headers <url>", "Cabeceras HTTP que responde una página"),
+            Command(("ip",), network.ip_lookup, "/ip <ip o dominio>", "Geolocalización y proveedor de una IP"),
+            Command(("ssl",), network.ssl_check, "/ssl <dominio>", "Validez y caducidad del certificado TLS"),
+            Command(("dns",), network.dns, "/dns <dominio>", "Registros DNS A, AAAA, CNAME, MX, NS y TXT"),
         ],
     ),
     (

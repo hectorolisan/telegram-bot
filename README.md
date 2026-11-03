@@ -1,7 +1,7 @@
 # Telegram Bot
 
 - Multipurpose Telegram bot built with `python-telegram-bot`
-- 42 commands grouped in 12 categories: weather, text, converters, security, maths, media, finance, networking, entertainment, games, productivity and preferences
+- 45 commands grouped in 12 categories: weather, text, converters, security, maths, media, finance, networking, entertainment, games, productivity and preferences
 - Interactive help menu with inline buttons
 - "🔄 Otra" button on random content (`/film`, `/series`, `/joke`, `/quote`, `/pokemon`, `/wiki`)
 - Per-user preferences (timezone, city, currency) saved in `data/bot.pickle` across restarts
@@ -63,7 +63,7 @@ telegram-bot/
 │   ├── games.py         # Coin, random number, dice
 │   ├── maths.py         # Calculator, primes, Fibonacci, percentages
 │   ├── media.py         # QR, colors, palettes, avatars
-│   ├── network.py       # Ping, WHOIS, HTTP headers
+│   ├── network.py       # Ping, WHOIS, HTTP headers, IP, SSL, DNS
 │   ├── productivity.py  # Timer and current time
 │   ├── security.py      # Passwords, hashes, Base64, IDs
 │   ├── settings.py      # User preferences (timezone, city, currency)
@@ -143,6 +143,9 @@ ruff format .
 | Networking      | `/ping <domain>`                            | TCP latency and availability                                   |
 | Networking      | `/whois <domain>`                           | Domain registration data                                       |
 | Networking      | `/headers <url>`                            | HTTP response headers                                          |
+| Networking      | `/ip <ip or domain>`                        | IP geolocation, ISP and AS                                     |
+| Networking      | `/ssl <domain>`                             | TLS certificate validity and expiry                            |
+| Networking      | `/dns <domain>`                             | A, AAAA, CNAME, MX, NS and TXT records                         |
 | Entertainment   | `/pokemon`                                  | Random Pokémon with stats and pixel-art sprite                 |
 | Entertainment   | `/wiki`                                     | Random Spanish Wikipedia article                               |
 | Entertainment   | `/joke`                                     | Random joke in Spanish                                         |
@@ -171,6 +174,8 @@ Telegram only allows lowercase letters, digits and underscores in command names,
 - Yahoo Finance: market indices
 - [PokéAPI](https://pokeapi.co/), [Wikipedia](https://es.wikipedia.org/), [JokeAPI](https://jokeapi.dev/), [ZenQuotes](https://zenquotes.io/), [TMDB](https://www.themoviedb.org/) / [TVmaze](https://www.tvmaze.com/api), [Wikimedia Feed](https://api.wikimedia.org/)
 - [MyMemory](https://mymemory.translated.net/doc/spec.php): translations
+- [ip-api](https://ip-api.com/): IP geolocation
+- [Google Public DNS](https://developers.google.com/speed/public-dns/docs/doh/json): DNS over HTTPS
 
 ## License
 
